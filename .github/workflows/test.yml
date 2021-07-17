@@ -19,6 +19,6 @@ jobs:
         uses: docker/setup-buildx-action@v1
 
       - name: Get-Version
-        uses: Vr00mm/github-action-semver@v0.7.0
+        uses: Vr00mm/github-action-semver@v0.8.0
         with:
           branchName: master
