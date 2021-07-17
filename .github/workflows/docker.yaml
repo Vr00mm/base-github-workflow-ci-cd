@@ -27,7 +27,7 @@ jobs:
           push: true
           context: ./docker
           platforms: linux/amd64,linux/arm64
-          tags: vr00mm/vr00mm:test-ci-${{fromJSON(needs.get-version.outputs.NEXT_VERSION)}}
+          tags: vr00mm/vr00mm
           secrets: |
             GIT_AUTH_TOKEN=${{ secrets.TOKEN_GITHUB }}
       - name: Update repo description
