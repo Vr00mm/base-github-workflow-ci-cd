@@ -9,8 +9,11 @@ on:
     branches:
       - 'master'
 jobs:
-  docker:
-    runs-on: ubuntu-latest
+  get-version:
+    run-on: ubutun-latest
+    outputs:
+      CURRENT_VERSION: ${{ steps.get-version.outputs.CURRENT_VERSION }}
+      NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
     steps:
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v1
@@ -22,8 +25,52 @@ jobs:
         uses: Vr00mm/github-action-semver@v0.9.2
         id: get-version
 
-      - name: Curren-Version
-        run: echo "The current version is ${{ steps.get-version.outputs.CURRENT_VERSION }}"
-      - name: Next-Version
-        run: echo "The next version will be ${{ steps.get-version.outputs.NEXT_VERSION }}"
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
 
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1 
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        id: docker_build
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          context: ./docker
+          platforms: linux/amd64,linux/arm64
+          tags: vr00mm/vr00mm:test-ci
+          secrets: |
+            GIT_AUTH_TOKEN=${{ secrets.TOKEN_GITHUB }}
+
+      - name: Update repo description
+        uses: peter-evans/dockerhub-description@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          repository: vr00mm/vr00mm
+
+      -name: Image digest
+        run: echo ${{ steps.docker_build.outputs.digest }}
+
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure helm
+        run: echo "myconfig" > .helm
+      - name: Helm lint
+        run: echo helm lint
+      - name: helm package
+        run: echo helm package blabla
+      - name: helm test
+        run: echo helm upgrade --install test package-version-1.0.0.tgz --namespace dry-run --dry-run -f values_test.yml
+      - name: helm push
+        run: echo helm push package-version-1.0.0.tgz
