@@ -20,10 +20,10 @@ jobs:
 
       - name: Get-Version
         uses: Vr00mm/github-action-semver@v0.8.0
-        with:
-          branchName: master
+        id: get-version
 
-      - name: Check-Version
-        run: echo "The next version will be ${{join(steps.Get-Version.outputs.*, '\n')}}"
-
+      - name: Curren-Version
+        run: echo "The current version is ${{ steps.get-version.outputs.CURRENT_VERSION }}"
+      - name: Next-Version
+        run: echo "The next version will be ${{ steps.get-version.outputs.NEXT_VERSION }}"
 
