@@ -1,4 +1,4 @@
-name: docker-helm
+name: helm
 on:
   workflow_dispatch:
   push:
