@@ -22,3 +22,8 @@ jobs:
         uses: Vr00mm/github-action-semver@v0.8.0
         with:
           branchName: master
+
+      - name: Check-Version
+        run: echo "The next version will be ${{join(steps.Get-Version.outputs.*, '\n')}}"
+
+
