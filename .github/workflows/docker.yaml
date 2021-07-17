@@ -34,7 +34,7 @@ jobs:
         uses: peter-evans/dockerhub-description@v2
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_PASSWORD }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
           repository: vr00mm/vr00mm
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
