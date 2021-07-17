@@ -58,7 +58,7 @@ jobs:
           password: ${{ secrets.DOCKERHUB_PASSWORD }}
           repository: vr00mm/vr00mm
 
-      -name: Image digest
+      - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
 
   helm:
