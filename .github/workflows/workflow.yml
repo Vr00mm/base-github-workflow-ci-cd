@@ -122,7 +122,7 @@ jobs:
           echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }}
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
 
-  helm-package:
+  helm-build:
     needs: [infos, docker-build, docker-push]
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
