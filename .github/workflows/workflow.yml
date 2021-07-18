@@ -12,11 +12,9 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: vr00mm/vr00mm:get-version
-      env:
-        ENV_VAR: test-micro
     steps:
       - name: Get-Version
-        run: echo $ENV_VAR
+        run: /entrypoint.sh
         id: get-version
     outputs:
       CURRENT_VERSION: ${{ steps.get-version.outputs.CURRENT_VERSION }}
@@ -31,7 +29,7 @@ jobs:
         - /var/run/docker.sock:/var/run/docker.sock
     steps:
       - name: Discovering env
-        run: ls $GITHUB_WORKSPACE && ls ${GITHUB_WORKSPACE/docker}
+        run: ls -R / | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
 
       - name: Docker Build
         run: docker build ${GITHUB_WORKSPACE}/docker -t vr00mm/vr00mm:image-name
