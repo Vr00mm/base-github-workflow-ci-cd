@@ -27,10 +27,12 @@ jobs:
       contents: read
       repository-projects: read
     steps:
-      - name: Runner
-        run: ls -Rlah /home/runner
-      - name: Workspace
-        run: ls -Rlah ${RUNNER_WORKSPACE}
+      - name: Load Workspace
+        uses: actions/checkout@v1
+
+      - name: home sweet home
+        run: ls -Rlah ${GITHUB_WORKSPACE}
+
 
   docker-build:
     needs: infos
