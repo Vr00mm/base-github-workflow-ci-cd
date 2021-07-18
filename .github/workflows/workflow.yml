@@ -68,7 +68,7 @@ jobs:
           --build-arg WORKSPACE="${GITHUB_WORKSPACE}"
 
   docker-push:
-    if: ${{ github.head_ref == 'develop' || github.head_ref == 'master' }}
+    if: ${{ github.head_ref == 'master' }}
     needs: [infos, docker-build]
     runs-on: ubuntu-latest
     container:
@@ -162,7 +162,7 @@ jobs:
         ENV_VAR: test-helm
     steps:
       - name: helm dry-run
-        run: echo helm upgrade install package-version-1.0.0.tgz
+        run: helm upgrade install package-version-1.0.0.tgz
 
   deploy:
     if: ${{ github.head_ref == 'master' }}
@@ -174,7 +174,7 @@ jobs:
         ENV_VAR: test-helm
     steps:
       - name: helm dry-run
-        run: echo helm upgrade install package-version-1.0.0.tgz
+        run: helm upgrade install package-version-1.0.0.tgz
 
   post-always:
     if: always()
