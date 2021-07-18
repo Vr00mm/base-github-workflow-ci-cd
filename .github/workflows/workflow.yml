@@ -113,7 +113,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
+          name: ${{ needs.infos.outputs.NEXT_VERSION }}.tar
           path: /tmp/${{ needs.infos.outputs.NEXT_VERSION }}.tar
 
   helm-package:
@@ -149,7 +149,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: ${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
+          name: ${{ needs.infos.outputs.NEXT_VERSION }}.tar
           path: /tmp
 
       - name: Load Docker image
