@@ -131,12 +131,12 @@ jobs:
       - name: Helm lint
         run: helm lint ${GITHUB_WORKSPACE}/helm/my-chart
       - name: Helm Package
-        run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION}
+        run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION} --destination /tmp/chart.tgz
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: my-chart-1.0.0.tgz
-          path: ${GITHUB_WORKSPACE}/my-chart-0.1.0.tgz
+          name: chart.tgz
+          path: /tmp/chart.tgz
 
 
   # We should download the docker and helm artifact and test a deployment
@@ -180,12 +180,12 @@ jobs:
       - name: Download Chart artifact
         uses: actions/download-artifact@v2
         with:
-          name: my-chart-1.0.0.tgz
+          name: chart.tgz
           path: /tmp
 
       - name: Test Chart installation
         run: |
-          helm upgrade --install "${APP_NAME}-dry-run" /tmp/my-chart-1.0.0.tgz -n "dry-run" --wait --create-namespace=true
+          helm upgrade --install "${APP_NAME}-dry-run" /tmp/chart.tgz -n "dry-run" --wait --create-namespace=true
           kubectl wait --for=condition=Ready pod --all -n "dry-run" --timeout=300s
 
   docker-push:
