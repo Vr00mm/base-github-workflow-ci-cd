@@ -65,7 +65,7 @@ jobs:
     name: "HelmLint"
     runs-on: ubuntu-latest
     container:
-      image: alpine/helm
+      image: vr00mm/docker-helm-client:v0.1.0
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
@@ -121,7 +121,7 @@ jobs:
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
-      image: alpine/helm
+      image: vr00mm/docker-helm-client:v0.1.0
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
@@ -152,7 +152,7 @@ jobs:
             - "v1.20.7"
             - "v1.14.10"
     container:
-      image: alpine:latest
+      image: vr00mm/docker-kind:v0.1.0
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
@@ -165,24 +165,6 @@ jobs:
 
       - name: Load Docker image
         run: docker load --input /tmp/${{ needs.infos.outputs.NEXT_VERSION }}.tar
-
-      - name: Install Requirements
-        run: apk update && apk add curl
-
-      - name: Install kind
-        run: |
-          curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
-          chmod +x ./kind
-          mv kind /usr/local/bin/
-
-      - name: Install helm
-        run: curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-
-      - name: Install kubectl
-        run: |
-          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-          chmod +x ./kubectl
-          mv ./kubectl /usr/local/bin/kubectl
 
       - name: Create cluster
         run: kind create cluster --image=kindest/node:${{ matrix.node }}
@@ -225,7 +207,7 @@ jobs:
     name: "Push Helm Chart"
     runs-on: ubuntu-latest
     container:
-      image: alpine/helm
+      image: vr00mm/docker-helm-client:v0.1.0
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
     steps:
@@ -240,7 +222,7 @@ jobs:
     needs: [infos, docker-push, helm-push, deploy-dry-run-on-cluster]
     runs-on: ubuntu-latest
     container:
-      image: alpine/helm
+      image: vr00mm/docker-helm-client:v0.1.0
       env:
         ENV_VAR: test-helm
     steps:
@@ -253,7 +235,7 @@ jobs:
     needs: [infos, docker-build, helm-package, release, deploy-dry-run-on-cluster]
     runs-on: ubuntu-latest
     container:
-      image: alpine/helm
+      image: vr00mm/docker-helm-client:v0.1.0
       env:
         ENV_VAR: test-helm
     steps:
