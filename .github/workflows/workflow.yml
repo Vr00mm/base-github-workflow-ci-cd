@@ -183,6 +183,12 @@ jobs:
           name: chart.tgz
           path: /tmp
 
+      - name: Template Chart
+        run: helm template "${APP_NAME}-dry-run" /tmp/chart.tgz -n "dry-run"
+
+      - name: Check Node status
+        run: kubectl get node
+
       - name: Test Chart installation
         run: |
           helm upgrade --install "${APP_NAME}-dry-run" /tmp/chart.tgz -n "dry-run" --wait --create-namespace=true
