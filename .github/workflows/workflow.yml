@@ -73,7 +73,7 @@ jobs:
 
   docker-build:
     needs: infos
-    name: Build Container Image
+    name: "ild Container Image"
     runs-on: ubuntu-latest
     container:
       image: docker:dind
@@ -105,7 +105,7 @@ jobs:
   docker-push:
     if: ${{ github.ref == 'refs/heads/master' }}
     needs: [infos, docker-build]
-    name: Push Container Image
+    name: "Push Container Image"
     runs-on: ubuntu-latest
     container:
       image: docker:dind
@@ -124,7 +124,7 @@ jobs:
 
   helm-package:
     needs: [infos, docker-build, docker-push]
-    name: Package Helm Chart
+    name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
       image: alpine/helm
@@ -147,7 +147,7 @@ jobs:
         run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz
 
   deploy-dry-run-on-cluster:
-    name: Deploying Helm Chart on kind cluster
+    name: "Deploying Helm Chart on kind cluster"
     needs: [infos, docker-build, docker-push, helm-build]
     runs-on: ubuntu-latest
     strategy:
@@ -204,7 +204,7 @@ jobs:
         run: helm upgrade install package-version-1.0.0.tgz
 
   deploy:
-    name: Deploy Release
+    name: "Deploy Release"
     if: ${{ github.ref == 'refs/heads/master' }}
     needs: [infos, docker-build, helm-build, release, deploy-dry-run-on-cluster]
     runs-on: ubuntu-latest
