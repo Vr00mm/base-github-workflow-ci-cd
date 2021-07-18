@@ -21,9 +21,15 @@ jobs:
       - name: Get-Version
         uses: vr00mm/github-action-semver@v0.9.2
         id: get-version
+      - name: Get-AppName
+        id: appName
+        run: |
+          APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
+          echo "::set-output name=APP_NAME::${APP_NAME}"
     outputs:
       CURRENT_VERSION: ${{ steps.get-version.outputs.CURRENT_VERSION }}
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
+      APP_NAME: ${{ steps.get-version.outputs.APP_NAME }}
 
   print-infos:
     needs: infos
@@ -85,18 +91,12 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: LowerCase name
-        id: appName
-        run: |
-          APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
-          echo "::set-output name=APP_NAME::${APP_NAME}"
-
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./docker/Dockerfile
-          tags: ${{ secrets.CI_REGISTRY }}/${{ steps.appName.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
+          tags: ${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
           build-args: APP_NAME="${APP_NAME}",GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}",BRANCH="${GITHUB_REF}"
 #            - COMMIT: '${GITHUB_SHA}'
 #            - BUILD_DATE: '$(date)'
@@ -113,8 +113,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
-          path: "/tmp/${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}.tar"
+          name: ${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
+          path: /tmp/${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}.tar
 
   helm-package:
     needs: [infos, helm-lint]
@@ -124,6 +124,7 @@ jobs:
       image: alpine/helm
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+        APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
@@ -139,6 +140,7 @@ jobs:
     name: "Push Container Image"
     runs-on: ubuntu-latest
     env:
+      APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
       APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
     steps:
       - name: Set up Docker Buildx
@@ -147,17 +149,14 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
+          name: ${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
           path: /tmp
 
       - name: Load Docker image
-        run: docker load --input "/tmp/${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}.tar"
+        run: docker load --input "/tmp/${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}.tar"
 
       - name: Push Docker Image to Registry
         run: |
-          # TODO remove this ugly fix
-          APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
-
           echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }} 2>/dev/null
           docker tag "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}" -t "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
@@ -200,7 +199,7 @@ jobs:
         run: kind create cluster --image=kindest/node:${{ matrix.node }}
       - name: Test Chart installation
         run: |
-          helm upgrade --install "${GITHUB_REPOSITORY}-dry-run" ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz -n dry-run --wait --create-namespace=true
+          helm upgrade --install "${APP_NAME}-dry-run" ./helm/my-chart-1.0.0.tgz -n dry-run --wait --create-namespace=true
           kubectl wait --for=condition=Ready pod --all -n dry-run --timeout=300s
 
   helm-push:
