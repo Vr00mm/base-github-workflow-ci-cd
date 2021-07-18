@@ -183,17 +183,19 @@ jobs:
           name: chart.tgz
           path: /tmp/chart.tgz
 
-      - name: Template Chart
-        run: |
-          tar xzvf /tmp/chart.tgz
-          helm template /tmp/my-chart -release-name 'my-chart' -n 'dry-run'
+      - name: check tmp dir
+        run: tar -xzvf chart.tgz && ls /tmp
 
       - name: Check Node status
         run: kubectl get node
 
+#      - name: Template Chart
+#        run: |
+#          helm upgrade --install "my-chart" my-chart -n 'dry-run'
+
       - name: Test Chart installation
         run: |
-          helm upgrade --install "${APP_NAME}-dry-run" /tmp/chart.tgz -n "dry-run" --wait --create-namespace=true
+          helm upgrade --install "${APP_NAME}-dry-run" /tmp/my-chart -n "dry-run" --wait --create-namespace=true
           kubectl wait --for=condition=Ready pod --all -n "dry-run" --timeout=300s
 
   docker-push:
