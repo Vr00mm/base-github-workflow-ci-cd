@@ -59,12 +59,8 @@ jobs:
     needs: infos
     name: "ild Container Image"
     runs-on: ubuntu-latest
-    container:
-      image: docker:dind
-      env:
-        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
-      volumes:
-        - /var/run/docker.sock:/var/run/docker.sock
+    env:
+      APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
