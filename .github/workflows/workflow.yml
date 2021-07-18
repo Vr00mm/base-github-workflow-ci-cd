@@ -8,8 +8,8 @@ on:
     branches:
       - 'master'
 jobs:
-  runs-on: ubuntu-latest
   infos:
+    runs-on: ubuntu-latest
     container:
       image: vr00mm/vr00mm:get-version
     steps:
@@ -28,9 +28,12 @@ jobs:
         run: |
           echo CURRENT_VERSION: ${{ needs.infos.outputs.CURRENT_VERSION }}
           echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+      - name: Print-Env
+        run: printenv
 
   docker-build:
     needs: infos
+    runs-on: ubuntu-latest
     container:
       image: docker:dind
       volumes:
@@ -38,7 +41,6 @@ jobs:
     steps:
       - name: Load Workspace
         uses: actions/checkout@v1
-
       - name: Build Docker Image
         run: |
           docker build ${GITHUB_WORKSPACE}/docker \
@@ -52,8 +54,7 @@ jobs:
           --build-arg BUILD_VERSION=test \
           --build-arg DOCKER_VERSION=test \
           --build-arg GO_BUILDER=test \
-          --build-arg WORKSPACE=test 
-          
+          --build-arg WORKSPACE=test
       - name: Push Docker Image to Registry
         run: |
           docker push \
@@ -62,6 +63,7 @@ jobs:
 
   helm-build:
     needs: [infos, docker-build]
+    runs-on: ubuntu-latest
     container:
       image: vr00mm/vr00mm:helm-client
       env:
@@ -80,6 +82,7 @@ jobs:
 
   deploy-dry-run:
     needs: [infos, docker-build, helm-build]
+    runs-on: ubuntu-latest
     container:
       image: vr00mm/vr00mm:helm-client
       env:
@@ -92,6 +95,7 @@ jobs:
 
   release:
     needs: [infos, docker-build, helm-build, deploy-dry-run]
+    runs-on: ubuntu-latest
     container:
       image: vr00mm/vr00mm:helm-client
       env:
@@ -104,6 +108,7 @@ jobs:
 
   deploy:
     needs: [infos, docker-build, helm-build, release, deploy-dry-run]
+    runs-on: ubuntu-latest
     container:
       image: vr00mm/vr00mm:helm-client
       env:
@@ -117,6 +122,7 @@ jobs:
   post-always:
     if: always()
     needs: [infos, docker-build, helm-build, i-am-on-node-test, deploy-dry-run, release, deploy]
+    runs-on: ubuntu-latest
     container:
       image: alpine:latest
     steps:
