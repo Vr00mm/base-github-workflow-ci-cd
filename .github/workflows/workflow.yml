@@ -134,38 +134,11 @@ jobs:
         run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION}
 
 
-  docker-push:
-    if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build]
-    name: "Push Container Image"
-    runs-on: ubuntu-latest
-    env:
-      APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-      APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: ${{ needs.infos.outputs.NEXT_VERSION }}.tar
-          path: /tmp
-
-      - name: Load Docker image
-        run: docker load --input /tmp/${{ needs.infos.outputs.NEXT_VERSION }}.tar
-
-      - name: Push Docker Image to Registry
-        run: |
-          echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }} 2>/dev/null
-          docker tag "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}" -t "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
-          docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
-          docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
-
-  # We try the helm, not the manifest
+  # We should download the docker and helm artifact and test a deployment
+  # We should use a custom image to get faster
   deploy-dry-run-on-cluster:
     name: "Deploying Helm Chart on kind cluster"
-    needs: [infos, docker-push, helm-package]
+    needs: [infos, docker-build, helm-package]
     runs-on: ubuntu-latest
     strategy:
         matrix:
@@ -197,10 +170,39 @@ jobs:
           sudo mv ./kubectl /usr/local/bin/kubectl
       - name: Create cluster
         run: kind create cluster --image=kindest/node:${{ matrix.node }}
+
       - name: Test Chart installation
         run: |
           helm upgrade --install "${APP_NAME}-dry-run" ./helm/my-chart-1.0.0.tgz -n dry-run --wait --create-namespace=true
           kubectl wait --for=condition=Ready pod --all -n dry-run --timeout=300s
+
+  docker-push:
+    if: ${{ github.ref == 'refs/heads/master' }}
+    needs: [infos, docker-build]
+    name: "Push Container Image"
+    runs-on: ubuntu-latest
+    env:
+      APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
+      APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+    steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: ${{ needs.infos.outputs.NEXT_VERSION }}.tar
+          path: /tmp
+
+      - name: Load Docker image
+        run: docker load --input /tmp/${{ needs.infos.outputs.NEXT_VERSION }}.tar
+
+      - name: Push Docker Image to Registry
+        run: |
+          echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }} 2>/dev/null
+          docker tag "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}" "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
+          docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
+          docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
 
   helm-push:
     needs: [infos, docker-push]
