@@ -9,7 +9,7 @@ on:
       - 'master'
 jobs:
   infos:
-    name: Releaser
+    name: Get Infos
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
@@ -24,6 +24,7 @@ jobs:
     outputs:
       CURRENT_VERSION: ${{ steps.get-version.outputs.CURRENT_VERSION }}
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
+      
 
   print-infos:
     needs: infos
@@ -57,7 +58,7 @@ jobs:
 
   docker-build:
     needs: infos
-    name: "ild Container Image"
+    name: "Build Container Image"
     runs-on: ubuntu-latest
     env:
       APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
@@ -80,17 +81,14 @@ jobs:
           context: .
           file: .docker/Dockerfile
           tags: ${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}
-          build-args:
-            - "APP_NAME='${APP_NAME}'"
-            - GIT_REPOSITORY: '${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}'
-            - BRANCH: '${GITHUB_REF}'
-            - COMMIT: '${GITHUB_SHA}'
-            - BUILD_DATE: '$(date)'
-            - BUILD_NB: '${GITHUB_RUN_NUMBER}'
-            - APP_VERSION: '${APP_VERSION}'
-            - DOCKER_VERSION: '$(docker --version)'
-            - GO_BUILDER: 'test'
-            - WORKSPACE: '${GITHUB_WORKSPACE}'
+          build-args: ["APP_NAME='${APP_NAME}'", "GIT_REPOSITORY='${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}'", "BRANCH: '${GITHUB_REF}'"]
+#            - COMMIT: '${GITHUB_SHA}'
+#            - BUILD_DATE: '$(date)'
+#            - BUILD_NB: '${GITHUB_RUN_NUMBER}'
+#            - APP_VERSION: '${APP_VERSION}'
+#            - DOCKER_VERSION: '$(docker --version)'
+#            - GO_BUILDER: 'test'
+#            - WORKSPACE: '${GITHUB_WORKSPACE}'
           outputs: type=docker,dest=/tmp/myimage.tar
 
       - name: Image digest
