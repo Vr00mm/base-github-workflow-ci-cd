@@ -52,7 +52,7 @@ jobs:
       - name: Build Docker Image
         run: |
           # TODO Remove this ugly this
-          APP_NAME=`echo ${GITHUB_REPOSITORY} |sed -e 's/\(.*\)/\L\1/'`
+          APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]' `
 
           docker build "${GITHUB_WORKSPACE}/docker"                               \
           -t "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"              \
@@ -81,7 +81,7 @@ jobs:
       - name: Push Docker Image to Registry
         run: |
           # TODO remove this ugly fix
-          APP_NAME=`echo ${GITHUB_REPOSITORY} |sed -e 's/\(.*\)/\L\1/'`
+          APP_NAME=`echo ${GITHUB_REPOSITORY} |sed -e tr '[:upper:]' '[:lower:]'`
 
           echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }}
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
