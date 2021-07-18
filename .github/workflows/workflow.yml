@@ -72,7 +72,7 @@ jobs:
           --build-arg WORKSPACE="${GITHUB_WORKSPACE}"
 
   docker-push:
-    if: ${{ github.head_ref == 'master' }}
+    if: ${{ github.ref == 'refs/heads/master' }}
     needs: [infos, docker-build]
     runs-on: ubuntu-latest
     container:
@@ -169,7 +169,7 @@ jobs:
         run: helm upgrade install package-version-1.0.0.tgz
 
   deploy:
-    if: ${{ github.head_ref == 'master' }}
+    if: ${{ github.ref == 'refs/heads/master' }}
     needs: [infos, docker-build, helm-build, release, deploy-dry-run-on-cluster]
     runs-on: ubuntu-latest
     container:
