@@ -136,7 +136,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: my-chart-1.0.0.tgz
-          path: ${GITHUB_WORKSPACE}/helm/my-chart-0.1.0.tgz
+          path: ${GITHUB_WORKSPACE}/my-chart-0.1.0.tgz
 
 
   # We should download the docker and helm artifact and test a deployment
