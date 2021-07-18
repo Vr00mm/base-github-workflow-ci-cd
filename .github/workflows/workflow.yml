@@ -95,7 +95,7 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: .
-          file: .docker/Dockerfile
+          file: ./docker/Dockerfile
           tags: ${{ secrets.CI_REGISTRY }}/${{ steps.appName.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
           build-args: APP_NAME="${APP_NAME}",GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}",BRANCH="${GITHUB_REF}"
 #            - COMMIT: '${GITHUB_SHA}'
