@@ -20,7 +20,7 @@ LABEL DOCKER_VERSION=$DOCKER_VERSION
 LABEL GO_VERSION=$GO_VERSION
 
 
-RUN apk update && apk add tree && tree
+RUN apk update && apk add tree
 
 
 ENTRYPOINT ["/bin/sh"]

@@ -53,7 +53,7 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           version: v1.29
-          working-directory: "${GITHUB_WORKSPACE}/src"
+          working-directory: "./src"
 
   docker-build:
     needs: infos
@@ -66,29 +66,40 @@ jobs:
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     steps:
-      - name: Load Workspace
-        uses: actions/checkout@v1
-      - name: Build Docker Image
-        run: |
-          # TODO Remove this ugly this
-          APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]' `
+      - name: Checkout
+        uses: actions/checkout@v2
 
-          docker build "${GITHUB_WORKSPACE}/docker"                               \
-          -t "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"              \
-          --build-arg APP_NAME="${APP_NAME}"                                      \
-          --build-arg GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"  \
-          --build-arg BRANCH="${GITHUB_REF}"                                      \
-          --build-arg COMMIT="${GITHUB_SHA}"                                      \
-          --build-arg BUILD_DATE="$(date)"                                        \
-          --build-arg BUILD_NB="${GITHUB_RUN_NUMBER}"                             \
-          --build-arg APP_VERSION="${APP_VERSION}"                                \
-          --build-arg DOCKER_VERSION="$(docker --version)"                        \
-          --build-arg GO_BUILDER=test                                             \
-          --build-arg WORKSPACE="${GITHUB_WORKSPACE}"
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: .docker/Dockerfile
+          tags: "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
+          build-args:
+            - APP_NAME="${APP_NAME}"
+            - GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"
+            - BRANCH="${GITHUB_REF}"
+            - COMMIT="${GITHUB_SHA}"
+            - BUILD_DATE="$(date)"
+            - BUILD_NB="${GITHUB_RUN_NUMBER}"
+            - APP_VERSION="${APP_VERSION}"
+            - DOCKER_VERSION="$(docker --version)"
+            - GO_BUILDER=test
+            - WORKSPACE="${GITHUB_WORKSPACE}"
+          outputs: type=docker,dest=/tmp/myimage.tar
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
+          path: "/tmp/${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}.tar"
 
   docker-push:
     if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build]
+    needs: [infos, docker-build, helm-build, deploy-dry-run-on-cluster, golangci]
     name: "Push Container Image"
     runs-on: ubuntu-latest
     container:
@@ -98,16 +109,29 @@ jobs:
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     steps:
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+      - name: Download artifact
+        uses: actions/download-artifact@v2
+        with:
+          name: "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
+          path: /tmp
+      - name: Load Docker image
+        run: |
+          docker load --input /tmp/${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}.tar
+
       - name: Push Docker Image to Registry
         run: |
           # TODO remove this ugly fix
           APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
 
-          echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }}
+          echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }} 2>/dev/null
+          docker tag "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}" -t "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
+          docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
 
   helm-build:
-    needs: [infos, docker-build, docker-push]
+    needs: [infos]
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
@@ -123,6 +147,7 @@ jobs:
         run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION}
       - name: helm push
         run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz
+
 
   deploy-dry-run-on-cluster:
     name: "Deploying Helm Chart on kind cluster"
