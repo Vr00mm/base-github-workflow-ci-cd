@@ -30,8 +30,11 @@ jobs:
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     steps:
+      - name: Discovering env
+        run: ls $GITHUB_WORKSPACE && ls ${GITHUB_WORKSPACE/docker}
+
       - name: Docker Build
-        run: docker build ./docker -t vr00mm/vr00mm:image-name
+        run: docker build ${GITHUB_WORKSPACE}/docker -t vr00mm/vr00mm:image-name
 
   helm-build:
     needs: docker-build
