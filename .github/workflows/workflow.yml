@@ -27,11 +27,8 @@ jobs:
       contents: read
       repository-projects: read
     steps:
-      - name: Install tools
-        run: apt update && apt install tree
-
       - name: Tree
-        run: tree .
+        run: ls -Rlah .
 
   docker-build:
     needs: infos
