@@ -37,8 +37,7 @@ jobs:
       - name: Print-Env
         run: printenv
       - name: Print github.ref
-        run: |
-          echo github.ref ${{ github.ref }}
+        run: echo github.ref ${{ github.ref }}
       - name: Print workspace content
         run:  ls ${GITHUB_WORKSPACE}
 
@@ -68,7 +67,7 @@ jobs:
         run: helm lint ./helm/my-chart
 
   docker-build:
-    needs: [infos, helm-lint, go-lint]
+    needs: [infos, go-lint]
     name: "Build Container Image"
     runs-on: ubuntu-latest
     env:
@@ -117,9 +116,26 @@ jobs:
           name: "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
           path: "/tmp/${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}.tar"
 
+  helm-build:
+    needs: [infos, helm-lint, go-lint]
+    name: "Package Helm Chart"
+    runs-on: ubuntu-latest
+    container:
+      image: alpine/helm
+      env:
+        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+    steps:
+      - name: Load Workspace
+        uses: actions/checkout@v2
+      - name: Helm lint
+        run: helm lint ${GITHUB_WORKSPACE}/helm/my-chart
+      - name: Helm Package
+        run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION}
+
+
   docker-push:
     if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build, helm-build, go-lint]
+    needs: [infos, docker-build]
     name: "Push Container Image"
     runs-on: ubuntu-latest
     env:
@@ -147,32 +163,13 @@ jobs:
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
 
-  helm-build:
-    needs: [infos, helm-lint, go-lint]
-    name: "Package Helm Chart"
-    runs-on: ubuntu-latest
-    container:
-      image: alpine/helm
-      env:
-        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
-    steps:
-      - name: Load Workspace
-        uses: actions/checkout@v2
-      - name: Helm lint
-        run: helm lint ${GITHUB_WORKSPACE}/helm/my-chart
-      - name: Helm Package
-        run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION}
-      - name: helm push
-        run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz
-
-
   deploy-dry-run-on-cluster:
     name: "Deploying Helm Chart on kind cluster"
-    needs: [infos, docker-build, docker-push, helm-build]
+    needs: [infos, docker-push, helm-package]
     runs-on: ubuntu-latest
     strategy:
         matrix:
-           node: 
+           node:
             - "v1.21.2"
             - "v1.17.17"
             - "v1.16.15"
@@ -186,29 +183,38 @@ jobs:
     steps:
       - name: Install Requirements
         run: apk update && apk add curl
-
       - name: Install kind
         run: |
           curl -Lo ./kind https://kind.sigs.k8s.io/dl/v0.11.1/kind-linux-amd64
           chmod +x ./kind
           sudo mv kind /usr/local/bin/
-
       - name: Install helm
         run: curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash
-
-      - name: Install kubectl 
+      - name: Install kubectl
         run: |
           curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
           chmod +x ./kubectl
           sudo mv ./kubectl /usr/local/bin/kubectl
-
       - name: Create cluster
         run: kind create cluster --image=kindest/node:${{ matrix.node }}
-
       - name: Test Chart installation
         run: |
           helm upgrade --install "${GITHUB_REPOSITORY}-dry-run" ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz -n dry-run --wait --create-namespace=true
           kubectl wait --for=condition=Ready pod --all -n dry-run --timeout=300s
+
+  helm-push:
+    needs: [infos, docker-push]
+    name: "Package Helm Chart"
+    runs-on: ubuntu-latest
+    container:
+      image: alpine/helm
+      env:
+        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+    steps:
+      - name: Load Workspace
+        uses: actions/checkout@v2
+      - name: helm push
+        run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz
 
   release:
     if: startsWith(${{ github.ref }}, 'refs/tags/v')
