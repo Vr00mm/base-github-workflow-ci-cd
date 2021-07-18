@@ -27,8 +27,6 @@ jobs:
   print-infos:
     needs: infos
     runs-on: ubuntu-latest
-    container:
-      image: alpine:latest
     steps:
       - name: Print-Version
         run: |
@@ -36,10 +34,11 @@ jobs:
           echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
       - name: Print-Env
         run: printenv
-      - name: Print github.head_ref and ref
+      - name: Print github.ref
         run: |
-          echo github.head_ref ${{ github.head_ref }}
           echo github.ref ${{ github.ref }}
+      - name: Print 
+        run: 
 
   docker-build:
     needs: infos
@@ -85,7 +84,7 @@ jobs:
       - name: Push Docker Image to Registry
         run: |
           # TODO remove this ugly fix
-          APP_NAME=`echo ${GITHUB_REPOSITORY} |sed -e tr '[:upper:]' '[:lower:]'`
+          APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
 
           echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }}
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
