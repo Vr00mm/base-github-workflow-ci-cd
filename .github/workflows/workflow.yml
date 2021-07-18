@@ -27,8 +27,11 @@ jobs:
       contents: read
       repository-projects: read
     steps:
-      - name: Tree
-        run: ls -Rlah .
+      - name: Runner
+        run: ls -Rlah /home/runner
+    steps:
+      - name: Workspace
+        run: ls -Rlah ${RUNNER_WORKSPACE}
 
   docker-build:
     needs: infos
@@ -65,7 +68,7 @@ jobs:
 
   post-always:
     if: always()
-    needs: [infos, docker-build, helm-build]
+    needs: [infos, docker-build, helm-build, i-am-on-node-test]
     runs-on: ubuntu-latest
     container:
       image: alpine:latest
