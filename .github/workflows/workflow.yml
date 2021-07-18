@@ -117,7 +117,7 @@ jobs:
           path: /tmp/docker.tar
 
   helm-package:
-    needs: [infos, helm-lint]
+    needs: [infos, docker-build]
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
