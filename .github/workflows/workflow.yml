@@ -9,6 +9,7 @@ on:
       - 'master'
 jobs:
   infos:
+    name: Releaser
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
@@ -26,6 +27,7 @@ jobs:
 
   print-infos:
     needs: infos
+    name: Print Infos
     runs-on: ubuntu-latest
     steps:
       - name: Print-Version
@@ -40,8 +42,38 @@ jobs:
       - name: Print 
         run: 
 
+  golangci:
+    name: GoLint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          # Optional: version of golangci-lint to use in form of v1.2 or v1.2.3 or `latest` to use the latest version
+          version: v1.29
+
+          # Optional: working directory, useful for monorepos
+          working-directory: .github/workspace/src
+
+          # Optional: golangci-lint command line arguments.
+          # args: --issues-exit-code=0
+
+          # Optional: show only new issues if it's a pull request. The default value is `false`.
+          # only-new-issues: true
+
+          # Optional: if set to true then the action will use pre-installed Go.
+          # skip-go-installation: true
+
+          # Optional: if set to true then the action don't cache or restore ~/go/pkg.
+          # skip-pkg-cache: true
+
+          # Optional: if set to true then the action don't cache or restore ~/.cache/go-build.
+          # skip-build-cache: true
+
   docker-build:
     needs: infos
+    name: Build Container Image
     runs-on: ubuntu-latest
     container:
       image: docker:dind
@@ -73,6 +105,7 @@ jobs:
   docker-push:
     if: ${{ github.ref == 'refs/heads/master' }}
     needs: [infos, docker-build]
+    name: Push Container Image
     runs-on: ubuntu-latest
     container:
       image: docker:dind
@@ -89,8 +122,9 @@ jobs:
           echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }}
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
 
-  helm-build:
+  helm-package:
     needs: [infos, docker-build, docker-push]
+    name: Package Helm Chart
     runs-on: ubuntu-latest
     container:
       image: alpine/helm
@@ -113,6 +147,7 @@ jobs:
         run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz
 
   deploy-dry-run-on-cluster:
+    name: Deploying Helm Chart on kind cluster
     needs: [infos, docker-build, docker-push, helm-build]
     runs-on: ubuntu-latest
     strategy:
@@ -157,6 +192,7 @@ jobs:
 
   release:
     if: startsWith(${{ github.ref }}, 'refs/tags/v')
+    name: Release
     needs: [infos, docker-build, helm-build, deploy-dry-run-on-cluster]
     runs-on: ubuntu-latest
     container:
@@ -168,6 +204,7 @@ jobs:
         run: helm upgrade install package-version-1.0.0.tgz
 
   deploy:
+    name: Deploy Release
     if: ${{ github.ref == 'refs/heads/master' }}
     needs: [infos, docker-build, helm-build, release, deploy-dry-run-on-cluster]
     runs-on: ubuntu-latest
@@ -180,6 +217,7 @@ jobs:
         run: helm upgrade install package-version-1.0.0.tgz
 
   post-always:
+    name: Result
     if: always()
     needs: [infos, docker-build, helm-build, deploy-dry-run-on-cluster, release, deploy]
     runs-on: ubuntu-latest
