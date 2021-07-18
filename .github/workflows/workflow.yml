@@ -172,7 +172,7 @@ jobs:
           path: /tmp
 
       - name: Load Docker image
-        run: docker load --input /tmp/${{ needs.infos.outputs.NEXT_VERSION }}.tar
+        run: docker load --input /tmp/docker.tar
 
       - name: Create cluster
         run: kind create cluster --image=kindest/node:${{ matrix.node }}
