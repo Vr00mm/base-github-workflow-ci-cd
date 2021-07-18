@@ -44,23 +44,23 @@ jobs:
         uses: actions/checkout@v1
       - name: Build Docker Image
         run: |
-          docker build ${GITHUB_WORKSPACE}/docker \
-          -t docker.io/vr00mm/vr00mm:test \
-          -t docker.io/vr00mm/vr00mm:latest \
-          --build-arg APP_NAME=test \
-          --build-arg GIT_REPOSITORY=test \
-          --build-arg BRANCH=test \
-          --build-arg COMMIT=test \
-          --build-arg BUILD_DAT=test \
-          --build-arg BUILD_VERSION=test \
-          --build-arg DOCKER_VERSION=test \
-          --build-arg GO_BUILDER=test \
-          --build-arg WORKSPACE=test
+          docker build ${GITHUB_WORKSPACE}/docker                               \
+          -t docker.io/vr00mm/vr00mm:test                                       \
+          -t docker.io/vr00mm/vr00mm:latest                                     \
+          --build-arg APP_NAME=${GITHUB_REPOSITORY}                             \
+          --build-arg GIT_REPOSITORY=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}  \
+          --build-arg BRANCH=${GITHUB_REF}                                      \
+          --build-arg COMMIT=${GITHUB_SHA}                                      \
+          --build-arg BUILD_DATE=$(date)                                        \
+          --build-arg BUILD_NB=${GITHUB_RUN_NUMBER}                             \
+          --build-arg APP_VERSION=${APP_VERSION}                                \
+          --build-arg DOCKER_VERSION=$(docker --version)                        \
+          --build-arg GO_BUILDER=test                                           \
+          --build-arg WORKSPACE=${GITHUB_WORKSPACE}
+
       - name: Push Docker Image to Registry
         run: |
-          docker push \
-          docker.io/vr00mm/vr00mm:test \
-          docker.io/vr00mm/vr00mm:latest
+          docker push docker.io/vr00mm/vr00mm:test docker.io/vr00mm/vr00mm:latest
 
   helm-build:
     needs: [infos, docker-build]
