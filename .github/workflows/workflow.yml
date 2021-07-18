@@ -10,11 +10,15 @@ on:
 jobs:
   infos:
     runs-on: ubuntu-latest
-    container:
-      image: vr00mm/vr00mm:get-version
     steps:
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v1
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
       - name: Get-Version
-        run: /entrypoint.sh
+        uses: Vr00mm/github-action-semver@v0.7.0
         id: get-version
     outputs:
       CURRENT_VERSION: ${{ steps.get-version.outputs.CURRENT_VERSION }}
@@ -81,13 +85,13 @@ jobs:
         run: echo "myconfig" > .helm
 
       - name: Helm lint
-        run: cd ${GITHUB_WORKSPACE}/helm/*/ && helm lint .
+        run: helm lint ${GITHUB_WORKSPACE}/helm/my-chart
 
       - name: Helm Package
-        run: cd ${GITHUB_WORKSPACE}/helm/*/ && helm package . --app-version ${APP_VERSION}
+        run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION}
 
       - name: helm push
-        run: echo helm push package-version-1.0.0.tgz
+        run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart/my-chart-${APP_VERSION}.tgz
 
   deploy-dry-run:
     needs: [infos, docker-build, helm-build]
