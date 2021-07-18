@@ -39,8 +39,8 @@ jobs:
       - name: Print github.ref
         run: |
           echo github.ref ${{ github.ref }}
-      - name: Print 
-        run: 
+      - name: Print workspace content
+        run:  ls ${GITHUB_WORKSPACE}
 
   golangci:
     name: GoLint
