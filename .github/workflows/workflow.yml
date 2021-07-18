@@ -113,8 +113,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ docker.tar
-          path: /tmp/${{ needs.infos.outputs.NEXT_VERSION }}.tar
+          name: docker.tar
+          path: /tmp/docker..tar
 
   helm-package:
     needs: [infos, helm-lint]
