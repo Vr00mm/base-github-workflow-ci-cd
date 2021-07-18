@@ -25,6 +25,7 @@ jobs:
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
 
   print-infos:
+    needs: infos
     runs-on: ubuntu-latest
     container:
       image: alpine:latest
