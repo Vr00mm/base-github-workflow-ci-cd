@@ -37,6 +37,8 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: docker:dind
+      env:
+        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     steps:
@@ -70,16 +72,20 @@ jobs:
     container:
       image: alpine/helm
       env:
-        ENV_VAR: test-helm
+        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
     steps:
       - name: Load Workspace
         uses: actions/checkout@v1
+
       - name: Configure helm
         run: echo "myconfig" > .helm
+
       - name: Helm lint
-        run: echo helm lint needs.get-version.outputs.NEXT_VERSION
-      - name: helm package
-        run: echo helm package blabla
+        run: cd ${GITHUB_WORKSPACE}/helm/*/ && helm lint .
+
+      - name: Helm Package
+        run: cd ${GITHUB_WORKSPACE}/helm/*/ && helm package . --app-version ${APP_VERSION}
+
       - name: helm push
         run: echo helm push package-version-1.0.0.tgz
 
@@ -87,7 +93,7 @@ jobs:
     needs: [infos, docker-build, helm-build]
     runs-on: ubuntu-latest
     container:
-      image: vr00mm/vr00mm:helm-client
+      image: alpine/helm
       env:
         ENV_VAR: test-helm
     steps:
@@ -95,10 +101,11 @@ jobs:
         run: echo helm upgrade install package-version-1.0.0.tgz
 
   release:
+    if: startsWith(github.ref, 'refs/tags/v')
     needs: [infos, docker-build, helm-build, deploy-dry-run]
     runs-on: ubuntu-latest
     container:
-      image: vr00mm/vr00mm:helm-client
+      image: alpine/helm
       env:
         ENV_VAR: test-helm
     steps:
@@ -106,10 +113,11 @@ jobs:
         run: echo helm upgrade install package-version-1.0.0.tgz
 
   deploy:
+    if: startsWith(github.ref, 'refs/head/master')
     needs: [infos, docker-build, helm-build, release, deploy-dry-run]
     runs-on: ubuntu-latest
     container:
-      image: vr00mm/vr00mm:helm-client
+      image: alpine/helm
       env:
         ENV_VAR: test-helm
     steps:
