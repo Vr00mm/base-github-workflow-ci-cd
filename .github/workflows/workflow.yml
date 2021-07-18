@@ -45,7 +45,7 @@ jobs:
       - name: Build Docker Image
         run: |
           set -x && docker build "${GITHUB_WORKSPACE}/docker"                     \
-          -t docker.io/vr00mm/vr00mm:test                                         \
+          -t ${{ secrets.CI_REGISTRY }}/vr00mm/vr00mm:test                        \
           -t docker.io/vr00mm/vr00mm:latest                                       \
           --build-arg APP_NAME="${GITHUB_REPOSITORY}"                             \
           --build-arg GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"  \
@@ -60,9 +60,9 @@ jobs:
 
       - name: Push Docker Image to Registry
         run: |
-          echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ CI_REGISTRY_USERNAME }} --password-stdin ${{ CI_REGISTRY }}
-          docker push ${{ CI_REGISTRY }}/vr00mm/vr00mm:test
-          docker push ${{ CI_REGISTRY }}/vr00mm/vr00mm:latest
+          echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }}
+          docker push ${{ secrets.CI_REGISTRY }}/vr00mm/vr00mm:test
+          docker push ${{ secrets.CI_REGISTRY }}/vr00mm/vr00mm:latest
 
   helm-build:
     needs: [infos, docker-build]
