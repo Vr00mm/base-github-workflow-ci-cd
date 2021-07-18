@@ -154,7 +154,7 @@ jobs:
 
   release:
     if: startsWith(${{ github.ref }}, 'refs/tags/v')
-    needs: [infos, docker-build, helm-build, deploy-dry-run]
+    needs: [infos, docker-build, helm-build, deploy-dry-run-on-cluster]
     runs-on: ubuntu-latest
     container:
       image: alpine/helm
