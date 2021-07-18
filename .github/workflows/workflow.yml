@@ -36,6 +36,10 @@ jobs:
           echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
       - name: Print-Env
         run: printenv
+      - name: Print github.head_ref and ref
+        run: |
+          echo github.head_ref ${{ github.head_ref }}
+          echo github.ref ${{ github.ref }}
 
   docker-build:
     needs: infos
