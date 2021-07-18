@@ -162,7 +162,7 @@ jobs:
           chmod +x ./kubectl
           sudo mv ./kubectl /usr/local/bin/kubectl
 
-      - name: Create cluster:
+      - name: Create cluster
         run: kind create cluster --image=kindest/node:${{ matrix.node }}
 
       - name: Test Chart installation
