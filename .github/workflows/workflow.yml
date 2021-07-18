@@ -89,7 +89,7 @@ jobs:
         id: appName
         run: |
           APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
-          echo '::set-output name=APP_NAME::${APP_NAME}'
+          echo "::set-output name=APP_NAME::${APP_NAME}"
 
       - name: Build and push
         uses: docker/build-push-action@v2
