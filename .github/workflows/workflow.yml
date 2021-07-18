@@ -132,17 +132,11 @@ jobs:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
     steps:
       - name: Load Workspace
-        uses: actions/checkout@v1
-
-      - name: Configure helm
-        run: echo "myconfig" > .helm
-
+        uses: actions/checkout@v2
       - name: Helm lint
         run: helm lint ${GITHUB_WORKSPACE}/helm/my-chart
-
       - name: Helm Package
         run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION}
-
       - name: helm push
         run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz
 
