@@ -81,7 +81,7 @@ jobs:
           file: .docker/Dockerfile
           tags: ${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}
           build-args:
-            - "APP_NAME='\${APP_NAME}'"
+            - "APP_NAME='${APP_NAME}'"
             - GIT_REPOSITORY: '${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}'
             - BRANCH: '${GITHUB_REF}'
             - COMMIT: '${GITHUB_SHA}'
