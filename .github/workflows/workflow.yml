@@ -52,8 +52,7 @@ jobs:
       - name: Build Docker Image
         run: |
           set -x && docker build "${GITHUB_WORKSPACE}/docker"                     \
-          -t ${{ secrets.CI_REGISTRY }}/vr00mm/vr00mm:test                        \
-          -t docker.io/vr00mm/vr00mm:latest                                       \
+          -t "${{ secrets.CI_REGISTRY }}/${GITHUB_REPOSITORY}:${APP_VERSION}"     \
           --build-arg APP_NAME="${GITHUB_REPOSITORY}"                             \
           --build-arg GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"  \
           --build-arg BRANCH="${GITHUB_REF}"                                      \
@@ -65,11 +64,21 @@ jobs:
           --build-arg GO_BUILDER=test                                             \
           --build-arg WORKSPACE="${GITHUB_WORKSPACE}"
 
+  docker-push:
+    if: (github.head_ref == 'develop' || github.head_ref == 'master')
+    needs: [infos, docker-build]
+    runs-on: ubuntu-latest
+    container:
+      image: docker:dind
+      env:
+        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+      volumes:
+        - /var/run/docker.sock:/var/run/docker.sock
+    steps:
       - name: Push Docker Image to Registry
         run: |
           echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }}
-          docker push ${{ secrets.CI_REGISTRY }}/vr00mm/vr00mm:test
-          docker push ${{ secrets.CI_REGISTRY }}/vr00mm/vr00mm:latest
+          docker push "${{ secrets.CI_REGISTRY }}/${GITHUB_REPOSITORY}:${APP_VERSION}"
 
   helm-build:
     needs: [infos, docker-build]
@@ -92,7 +101,7 @@ jobs:
         run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION}
 
       - name: helm push
-        run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart/my-chart-${APP_VERSION}.tgz
+        run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz
 
   deploy-dry-run:
     needs: [infos, docker-build, helm-build]
@@ -118,7 +127,7 @@ jobs:
         run: echo helm upgrade install package-version-1.0.0.tgz
 
   deploy:
-    if: startsWith(github.ref, 'refs/head/master')
+    if: startsWith(github.head_ref, 'master')
     needs: [infos, docker-build, helm-build, release, deploy-dry-run]
     runs-on: ubuntu-latest
     container:
