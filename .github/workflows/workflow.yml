@@ -157,7 +157,7 @@ jobs:
             - "v1.20.7"
             - "v1.14.10"
     container:
-      image: vr00mm/docker-kind:v0.2.0
+      image: vr00mm/docker-kind:v0.1.0
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
