@@ -9,6 +9,7 @@ on:
       - 'master'
 jobs:
   infos:
+    runs-on: ubuntu-latest
     container:
       image: vr00mm/vr00mm:get-version
       env:
@@ -23,6 +24,7 @@ jobs:
 
   docker-build:
     needs: infos
+    runs-on: ubuntu-latest
     container:
       image: docker:dind
       volumes:
@@ -33,6 +35,7 @@ jobs:
 
   helm-build:
     needs: docker-build
+    runs-on: ubuntu-latest
     container:
       image: vr00mm/vr00mm:helm-client
       env:
@@ -52,6 +55,7 @@ jobs:
   post-always:
     if: always()
     needs: [infos, docker-build, helm-build]
+    runs-on: ubuntu-latest
     container:
       image: alpine:latest
     steps:
