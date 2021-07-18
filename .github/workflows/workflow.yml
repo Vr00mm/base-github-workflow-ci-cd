@@ -24,46 +24,25 @@ jobs:
     needs: infos
     runs-on: ubuntu-latest
     steps:
-      - name: Discovering HOME
-        run: ls -R $HOME | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
+      - name: Install tools
+        run: apt update && apt install tree
 
-      - name: Discovering W
-        run: ls -R /__w/ | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
-
-      - name: Discovering DEFAULT
-        run: ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
-
-      - name: Discovering MOUNTS
-        run: cat /proc/mounts
-
-      - name: Discovering ENVS
-        run: printenv
+      - name: Tree
+        run: tree /
 
   docker-build:
     needs: infos
     runs-on: ubuntu-latest
     container:
-      image: docker:dind
+      image: alpine:latest
       volumes:
         - /var/run/docker.sock:/var/run/docker.sock
     steps:
-      - name: Discovering HOME
-        run: ls -R $HOME | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
+      - name: Install tools
+        run: apk update && apk add tree
 
-      - name: Discovering W
-        run: ls -R /__w/ | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
-
-      - name: Discovering DEFAULT
-        run: ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
-
-      - name: Discovering MOUNTS
-        run: cat /proc/mounts
-
-      - name: Discovering ENVS
-        run: printenv
-
-      - name: Docker Build
-        run: docker build ${GITHUB_WORKSPACE}/docker -t vr00mm/vr00mm:image-name
+      - name: Tree
+        run: tree /
 
   helm-build:
     needs: docker-build
