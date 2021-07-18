@@ -41,7 +41,7 @@ jobs:
       - name: Print workspace content
         run:  ls ${GITHUB_WORKSPACE}
 
-  gol-lint:
+  go-lint:
     name: GoLint
     needs: infos
     runs-on: ubuntu-latest
