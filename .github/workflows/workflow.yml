@@ -122,7 +122,7 @@ jobs:
 
   post-always:
     if: always()
-    needs: [infos, docker-build, helm-build, i-am-on-node-test, deploy-dry-run, release, deploy]
+    needs: [infos, docker-build, helm-build, deploy-dry-run, release, deploy]
     runs-on: ubuntu-latest
     container:
       image: alpine:latest
