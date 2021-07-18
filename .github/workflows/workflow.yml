@@ -23,12 +23,15 @@ jobs:
   i-am-on-node-test:
     needs: infos
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      epository-projects: read
     steps:
       - name: Install tools
         run: apt update && apt install tree
 
       - name: Tree
-        run: tree /
+        run: tree .
 
   docker-build:
     needs: infos
