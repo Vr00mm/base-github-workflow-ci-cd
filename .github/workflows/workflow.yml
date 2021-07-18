@@ -42,7 +42,7 @@ jobs:
       - name: Print workspace content
         run:  ls ${GITHUB_WORKSPACE}
 
-  golangci:
+  gol-lint:
     name: GoLint
     needs: infos
     runs-on: ubuntu-latest
@@ -55,8 +55,20 @@ jobs:
           version: v1.29
           working-directory: "./src"
 
+  helm-lint:
+    needs: [infos]
+    name: "HelmLint"
+    runs-on: ubuntu-latest
+    container:
+      image: alpine/helm
+    steps:
+      - name: Load Workspace
+        uses: actions/checkout@v2
+      - name: Helm lint
+        run: helm lint ./helm/my-chart
+
   docker-build:
-    needs: infos
+    needs: [infos, helm-lint, go-lint]
     name: "Build Container Image"
     runs-on: ubuntu-latest
     env:
@@ -107,7 +119,7 @@ jobs:
 
   docker-push:
     if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build, helm-build, golangci]
+    needs: [infos, docker-build, helm-build, go-lint]
     name: "Push Container Image"
     runs-on: ubuntu-latest
     env:
@@ -136,7 +148,7 @@ jobs:
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
 
   helm-build:
-    needs: [infos]
+    needs: [infos, helm-lint, go-lint]
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
