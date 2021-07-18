@@ -87,7 +87,7 @@ jobs:
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
 
   helm-build:
-    needs: [infos, docker-build]
+    needs: [infos, docker-build, docker-push]
     runs-on: ubuntu-latest
     container:
       image: alpine/helm
@@ -110,7 +110,7 @@ jobs:
         run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz
 
   deploy-dry-run-on-cluster:
-    needs: [infos, docker-build, helm-build]
+    needs: [infos, docker-build, docker-push, helm-build]
     runs-on: ubuntu-latest
     strategy:
         matrix:
@@ -166,7 +166,7 @@ jobs:
 
   deploy:
     if: ${{ github.head_ref == 'master' }}
-    needs: [infos, docker-build, helm-build, release, deploy-dry-run]
+    needs: [infos, docker-build, helm-build, release, deploy-dry-run-on-cluster]
     runs-on: ubuntu-latest
     container:
       image: alpine/helm
@@ -178,7 +178,7 @@ jobs:
 
   post-always:
     if: always()
-    needs: [infos, docker-build, helm-build, deploy-dry-run, release, deploy]
+    needs: [infos, docker-build, helm-build, deploy-dry-run-on-cluster, release, deploy]
     runs-on: ubuntu-latest
     container:
       image: alpine:latest
