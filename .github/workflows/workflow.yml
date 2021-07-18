@@ -114,7 +114,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: docker.tar
-          path: /tmp/docker..tar
+          path: /tmp/docker.tar
 
   helm-package:
     needs: [infos, helm-lint]
