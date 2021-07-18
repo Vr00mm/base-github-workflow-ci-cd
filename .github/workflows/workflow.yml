@@ -184,7 +184,7 @@ jobs:
           path: /tmp/chart.tgz
 
       - name: check tmp dir
-        run: ls /tmp && ls && tar tzf /tmp/chart.tgz && ls /tmp && ls
+        run: ls /tmp && ls && tar xzf /tmp/chart.tgz && ls /tmp && ls
 
       - name: Check Node status
         run: kubectl get node
