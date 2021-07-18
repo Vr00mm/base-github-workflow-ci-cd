@@ -117,7 +117,7 @@ jobs:
           path: /tmp/docker.tar
 
   helm-package:
-    needs: [infos, docker-build]
+    needs: [infos, docker-build, helm-lint]
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
@@ -184,7 +184,7 @@ jobs:
           path: /tmp/chart.tgz
 
       - name: check tmp dir
-        run: tar -xzvf chart.tgz && ls /tmp
+        run: tar -xzvf /tmp/chart.tgz && ls /tmp && ls
 
       - name: Check Node status
         run: kubectl get node
