@@ -133,7 +133,7 @@ jobs:
         run: echo helm upgrade install package-version-1.0.0.tgz
 
   deploy:
-    if: ${{ github.head_ref == 'master') }}
+    if: ${{ github.head_ref == 'master' }}
     needs: [infos, docker-build, helm-build, release, deploy-dry-run]
     runs-on: ubuntu-latest
     container:
