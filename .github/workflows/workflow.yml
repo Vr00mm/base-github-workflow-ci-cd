@@ -20,6 +20,25 @@ jobs:
       CURRENT_VERSION: ${{ steps.get-version.outputs.CURRENT_VERSION }}
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
 
+  i-am-on-node-test:
+    needs: infos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Discovering HOME
+        run: ls -R $HOME | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
+
+      - name: Discovering W
+        run: ls -R /__w/ | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
+
+      - name: Discovering DEFAULT
+        run: ls -R | grep ":$" | sed -e 's/:$//' -e 's/[^-][^\/]*\//--/g' -e 's/^/   /' -e 's/-/|/' 2>/dev/null || true
+
+      - name: Discovering MOUNTS
+        run: cat /proc/mounts
+
+      - name: Discovering ENVS
+        run: printenv
+
   docker-build:
     needs: infos
     runs-on: ubuntu-latest
@@ -39,6 +58,9 @@ jobs:
 
       - name: Discovering MOUNTS
         run: cat /proc/mounts
+
+      - name: Discovering ENVS
+        run: printenv
 
       - name: Docker Build
         run: docker build ${GITHUB_WORKSPACE}/docker -t vr00mm/vr00mm:image-name
