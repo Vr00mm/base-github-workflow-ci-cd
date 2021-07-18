@@ -51,9 +51,12 @@ jobs:
         uses: actions/checkout@v1
       - name: Build Docker Image
         run: |
-          set -x && docker build "${GITHUB_WORKSPACE}/docker"                     \
-          -t "${{ secrets.CI_REGISTRY }}/${GITHUB_REPOSITORY}:${APP_VERSION}"     \
-          --build-arg APP_NAME="${GITHUB_REPOSITORY}"                             \
+          # TODO Remove this ugly this
+          APP_NAME=`echo ${GITHUB_REPOSITORY} |sed -e 's/\(.*\)/\L\1/'`
+
+          docker build "${GITHUB_WORKSPACE}/docker"                               \
+          -t "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"              \
+          --build-arg APP_NAME="${APP_NAME         }"                             \
           --build-arg GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"  \
           --build-arg BRANCH="${GITHUB_REF}"                                      \
           --build-arg COMMIT="${GITHUB_SHA}"                                      \
@@ -77,8 +80,11 @@ jobs:
     steps:
       - name: Push Docker Image to Registry
         run: |
+          # TODO remove this ugly fix
+          APP_NAME=`echo ${GITHUB_REPOSITORY} |sed -e 's/\(.*\)/\L\1/'`
+
           echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }}
-          docker push "${{ secrets.CI_REGISTRY }}/${GITHUB_REPOSITORY}:${APP_VERSION}"
+          docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
 
   helm-build:
     needs: [infos, docker-build]
