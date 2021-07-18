@@ -105,7 +105,7 @@ jobs:
 #            - DOCKER_VERSION: '$(docker --version)'
 #            - GO_BUILDER: 'test'
 #            - WORKSPACE: '${GITHUB_WORKSPACE}'
-          outputs: type=docker,dest=/tmp/myimage.tar
+          outputs: type=docker,dest=/tmp/${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}.tar
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
