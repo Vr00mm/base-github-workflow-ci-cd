@@ -56,7 +56,7 @@ jobs:
 
           docker build "${GITHUB_WORKSPACE}/docker"                               \
           -t "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"              \
-          --build-arg APP_NAME="${APP_NAME         }"                             \
+          --build-arg APP_NAME="${APP_NAME}"                                      \
           --build-arg GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}"  \
           --build-arg BRANCH="${GITHUB_REF}"                                      \
           --build-arg COMMIT="${GITHUB_SHA}"                                      \
