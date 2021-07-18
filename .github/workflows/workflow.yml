@@ -102,7 +102,7 @@ jobs:
 
   docker-push:
     if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build, helm-build, deploy-dry-run-on-cluster, golangci]
+    needs: [infos, docker-build, helm-build, golangci]
     name: "Push Container Image"
     runs-on: ubuntu-latest
     env:
