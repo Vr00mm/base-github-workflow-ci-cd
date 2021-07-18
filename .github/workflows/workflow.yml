@@ -116,8 +116,8 @@ jobs:
           name: "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
           path: "/tmp/${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}.tar"
 
-  helm-build:
-    needs: [infos, helm-lint, go-lint]
+  helm-package:
+    needs: [infos, helm-lint]
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
@@ -163,6 +163,7 @@ jobs:
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
 
+  # We try the helm, not the manifest
   deploy-dry-run-on-cluster:
     name: "Deploying Helm Chart on kind cluster"
     needs: [infos, docker-push, helm-package]
