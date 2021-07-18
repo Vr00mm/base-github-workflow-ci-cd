@@ -113,7 +113,7 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-artifact@v2
         with:
-          name: ${{ needs.infos.outputs.NEXT_VERSION }}.tar
+          name: ${{ docker.tar
           path: /tmp/${{ needs.infos.outputs.NEXT_VERSION }}.tar
 
   helm-package:
@@ -168,7 +168,7 @@ jobs:
       - name: Download artifact
         uses: actions/download-artifact@v2
         with:
-          name: ${{ needs.infos.outputs.NEXT_VERSION }}.tar
+          name: docker.tar
           path: /tmp
 
       - name: Load Docker image
@@ -183,11 +183,10 @@ jobs:
           name: chart.tgz
           path: /tmp/chart.tgz
 
-      - name: check fo file
-        run: ls /tmp
-
       - name: Template Chart
-        run: helm template "${APP_NAME}-dry-run" /tmp/chart.tgz -n "dry-run"
+        run: |
+          tar xzvf /tmp/chart.tgz
+          helm template /tmp/my-chart -release-name 'my-chart' -n 'dry-run'
 
       - name: Check Node status
         run: kubectl get node
@@ -212,7 +211,7 @@ jobs:
       - name: Download Container artifact
         uses: actions/download-artifact@v2
         with:
-          name: ${{ needs.infos.outputs.NEXT_VERSION }}.tar
+          name: docker.tar
           path: /tmp
 
       - name: Load Docker image
