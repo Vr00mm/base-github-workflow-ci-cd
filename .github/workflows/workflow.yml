@@ -178,7 +178,7 @@ jobs:
 
   docker-push:
     if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build]
+    needs: [infos, docker-build, deploy-dry-run-on-cluster]
     name: "Push Container Image"
     runs-on: ubuntu-latest
     env:
@@ -205,7 +205,7 @@ jobs:
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
 
   helm-push:
-    needs: [infos, docker-push]
+    needs: [infos, helm-package, deploy-dry-run-on-cluster]
     name: "Push Helm Chart"
     runs-on: ubuntu-latest
     container:
@@ -221,7 +221,7 @@ jobs:
   release:
     if: startsWith(${{ github.ref }}, 'refs/tags/v')
     name: Release
-    needs: [infos, docker-build, helm-package, deploy-dry-run-on-cluster]
+    needs: [infos, docker-push, helm-push, deploy-dry-run-on-cluster]
     runs-on: ubuntu-latest
     container:
       image: alpine/helm
