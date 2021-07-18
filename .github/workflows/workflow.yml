@@ -97,7 +97,7 @@ jobs:
           context: .
           file: .docker/Dockerfile
           tags: ${{ secrets.CI_REGISTRY }}/${{ steps.appName.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
-          build-args: APP_NAME='${APP_NAME}',GIT_REPOSITORY='${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}',BRANCH='${GITHUB_REF}'
+          build-args: APP_NAME=${APP_NAME},GIT_REPOSITORY=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY},BRANCH=${GITHUB_REF}
 #            - COMMIT: '${GITHUB_SHA}'
 #            - BUILD_DATE: '$(date)'
 #            - BUILD_NB: '${GITHUB_RUN_NUMBER}'
