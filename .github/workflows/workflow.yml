@@ -1,4 +1,4 @@
-name: docker-helm
+name: docker-Helm
 on:
   workflow_dispatch:
   push:
@@ -44,6 +44,7 @@ jobs:
 
   golangci:
     name: GoLint
+    needs: infos
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -52,7 +53,7 @@ jobs:
         uses: golangci/golangci-lint-action@v2
         with:
           version: v1.29
-          working-directory: ".github/workspace/src"
+          working-directory: "${GITHUB_WORKSPACE}/src"
 
   docker-build:
     needs: infos
