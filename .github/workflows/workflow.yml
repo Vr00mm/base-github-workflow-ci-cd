@@ -68,7 +68,7 @@ jobs:
     needs: [infos, docker-build]
     runs-on: ubuntu-latest
     container:
-      image: vr00mm/vr00mm:helm-client
+      image: alpine/helm
       env:
         ENV_VAR: test-helm
     steps:
@@ -77,7 +77,7 @@ jobs:
       - name: Configure helm
         run: echo "myconfig" > .helm
       - name: Helm lint
-        run: echo helm lint ${{fromJSON(needs.get-version.outputs.NEXT_VERSION)}}
+        run: echo helm lint needs.get-version.outputs.NEXT_VERSION
       - name: helm package
         run: echo helm package blabla
       - name: helm push
@@ -91,8 +91,6 @@ jobs:
       env:
         ENV_VAR: test-helm
     steps:
-      - name: Load Workspace
-        uses: actions/checkout@v1
       - name: helm dry-run
         run: echo helm upgrade install package-version-1.0.0.tgz
 
@@ -104,8 +102,6 @@ jobs:
       env:
         ENV_VAR: test-helm
     steps:
-      - name: Load Workspace
-        uses: actions/checkout@v1
       - name: helm dry-run
         run: echo helm upgrade install package-version-1.0.0.tgz
 
@@ -117,8 +113,6 @@ jobs:
       env:
         ENV_VAR: test-helm
     steps:
-      - name: Load Workspace
-        uses: actions/checkout@v1
       - name: helm dry-run
         run: echo helm upgrade install package-version-1.0.0.tgz
 
