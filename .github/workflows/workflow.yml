@@ -60,7 +60,8 @@ jobs:
 
       - name: Push Docker Image to Registry
         run: |
-          docker push docker.io/vr00mm/vr00mm:test docker.io/vr00mm/vr00mm:latest
+          docker push docker.io/vr00mm/vr00mm:test
+          docker push docker.io/vr00mm/vr00mm:latest
 
   helm-build:
     needs: [infos, docker-build]
