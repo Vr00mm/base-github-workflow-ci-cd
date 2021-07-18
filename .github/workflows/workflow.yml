@@ -44,7 +44,7 @@ jobs:
         uses: actions/checkout@v1
       - name: Build Docker Image
         run: |
-          set -x && docker build "${GITHUB_WORKSPACE}/docker"                               \
+          set -x && docker build "${GITHUB_WORKSPACE}/docker"                     \
           -t docker.io/vr00mm/vr00mm:test                                         \
           -t docker.io/vr00mm/vr00mm:latest                                       \
           --build-arg APP_NAME="${GITHUB_REPOSITORY}"                             \
@@ -60,8 +60,9 @@ jobs:
 
       - name: Push Docker Image to Registry
         run: |
-          docker push docker.io/vr00mm/vr00mm:test
-          docker push docker.io/vr00mm/vr00mm:latest
+          echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ CI_REGISTRY_USERNAME }} --password-stdin ${{ CI_REGISTRY }}
+          docker push ${{ CI_REGISTRY }}/vr00mm/vr00mm:test
+          docker push ${{ CI_REGISTRY }}/vr00mm/vr00mm:latest
 
   helm-build:
     needs: [infos, docker-build]
