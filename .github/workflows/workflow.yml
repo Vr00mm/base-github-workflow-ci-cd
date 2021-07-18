@@ -29,7 +29,6 @@ jobs:
     steps:
       - name: Runner
         run: ls -Rlah /home/runner
-    steps:
       - name: Workspace
         run: ls -Rlah ${RUNNER_WORKSPACE}
 
