@@ -175,7 +175,7 @@ jobs:
         run: docker load --input /tmp/docker.tar
 
       - name: Create cluster
-        run: kind create cluster --image=kindest/node:${{ matrix.node }}
+        run: kind create cluster --image=kindest/node:${{ matrix.node }} --wait 300s
 
       - name: Download Chart artifact
         uses: actions/download-artifact@v2
