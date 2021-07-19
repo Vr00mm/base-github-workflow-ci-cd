@@ -31,46 +31,46 @@ jobs:
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
       APP_NAME: ${{ steps.appName.outputs.APP_NAME }}
 
-  # print-infos:
-    # needs: infos
-    # name: Print Infos
-    # runs-on: ubuntu-latest
-    # steps:
-      # - name: Print-Version
-        # run: |
-          # echo CURRENT_VERSION: ${{ needs.infos.outputs.CURRENT_VERSION }}
-          # echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
-      # - name: Print-Env
-        # run: printenv
-      # - name: Print github.ref
-        # run: echo github.ref ${{ github.ref }}
-      # - name: Print workspace content
-        # run:  ls ${GITHUB_WORKSPACE}
+  print-infos:
+    needs: infos
+    name: Print Infos
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print-Version
+        run: |
+          echo CURRENT_VERSION: ${{ needs.infos.outputs.CURRENT_VERSION }}
+          echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+      - name: Print-Env
+        run: printenv
+      - name: Print github.ref
+        run: echo github.ref ${{ github.ref }}
+      - name: Print workspace content
+        run:  ls ${GITHUB_WORKSPACE}
 
-  # go-lint:
-    # name: GoLint
-    # needs: infos
-    # runs-on: ubuntu-latest
-    # steps:
-      # - uses: actions/checkout@v2
+  go-lint:
+    name: GoLint
+    needs: infos
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-      # - name: golangci-lint
-        # uses: golangci/golangci-lint-action@v2
-        # with:
-          # version: v1.29
-          # working-directory: "./src"
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: v1.29
+          working-directory: "./src"
 
-  # helm-lint:
-    # needs: [infos]
-    # name: "HelmLint"
-    # runs-on: ubuntu-latest
-    # container:
-      # image: vr00mm/docker-helm-client:v0.1.0
-    # steps:
-      # - name: Load Workspace
-        # uses: actions/checkout@v2
-      # - name: Helm lint
-        # run: helm lint ./helm/my-chart
+  helm-lint:
+    needs: [infos]
+    name: "HelmLint"
+    runs-on: ubuntu-latest
+    container:
+      image: vr00mm/docker-helm-client:v0.1.0
+    steps:
+      - name: Load Workspace
+        uses: actions/checkout@v2
+      - name: Helm lint
+        run: helm lint ./helm/my-chart
 
   docker-build:
     needs: [infos, go-lint]
