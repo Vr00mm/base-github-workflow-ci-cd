@@ -161,6 +161,7 @@ jobs:
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
