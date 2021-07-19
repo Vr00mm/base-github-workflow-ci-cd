@@ -188,7 +188,7 @@ jobs:
         run: docker ps -a
 
       - name: sleep
-        run: sleep120
+        run: sleep 120
 
       - name: ps again
         run: docker ps
