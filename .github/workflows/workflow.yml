@@ -183,6 +183,15 @@ jobs:
           name: chart.tgz
           path: /tmp/chart.tgz
 
+      - name: docker
+        run: docker ps -a
+
+      - name: sleep
+        run: sleep120
+
+      - name: ps again
+        run: docker ps
+
       - name: Check Node status
         run: kubectl get node
 
