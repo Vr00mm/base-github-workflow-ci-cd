@@ -141,7 +141,7 @@ jobs:
 
   # We should download the docker and helm artifact and test a deployment
   # We should use a custom image to get faster
-  deploy-dry-run-on-cluster:
+  deploy-on-kind:
     name: "Deploying Helm Chart on kind cluster"
     needs: [infos, docker-build, helm-package]
     runs-on: ubuntu-latest
@@ -183,24 +183,22 @@ jobs:
           name: chart.tgz
           path: /tmp/chart.tgz
 
-      - name: check tmp dir
-        run: ls /tmp && untar '/tmp/chart.tgz' && ls /tmp && ls
-
       - name: Check Node status
         run: kubectl get node
 
-#      - name: Template Chart
-#        run: |
-#          helm upgrade --install "my-chart" my-chart -n 'dry-run'
+      - name: Dry-Run installation
+        run: |
+          kubectl create namespace "dry-run"
+          helm upgrade --install "my-chart" /tmp/chart.tgz -n 'dry-run' --dry-run
 
       - name: Test Chart installation
         run: |
-          helm upgrade --install "${APP_NAME}-dry-run" /tmp/my-chart -n "dry-run" --wait --create-namespace=true
+          helm upgrade --install "my-chart" /tmp/chart.tgz -n "dry-run" --wait
           kubectl wait --for=condition=Ready pod --all -n "dry-run" --timeout=300s
 
   docker-push:
     if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build, deploy-dry-run-on-cluster]
+    needs: [infos, docker-build, deploy-on-kind]
     name: "Push Container Image"
     runs-on: ubuntu-latest
     env:
@@ -227,7 +225,7 @@ jobs:
           docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
 
   helm-push:
-    needs: [infos, helm-package, deploy-dry-run-on-cluster]
+    needs: [infos, helm-package, deploy-on-kind]
     name: "Push Helm Chart"
     runs-on: ubuntu-latest
     container:
@@ -243,7 +241,7 @@ jobs:
   release:
     if: startsWith(${{ github.ref }}, 'refs/tags/v')
     name: Release
-    needs: [infos, docker-push, helm-push, deploy-dry-run-on-cluster]
+    needs: [infos, docker-push, helm-push, deploy-on-kind]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.1.0
@@ -256,7 +254,7 @@ jobs:
   deploy:
     name: "Deploy Release"
     if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build, helm-package, release, deploy-dry-run-on-cluster]
+    needs: [infos, docker-build, helm-package, release, deploy-on-kind]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.1.0
@@ -269,7 +267,7 @@ jobs:
   post-always:
     name: Result
     if: always()
-    needs: [infos, docker-build, helm-package, deploy-dry-run-on-cluster, release, deploy]
+    needs: [infos, docker-build, helm-package, deploy-on-kind, release, deploy]
     runs-on: ubuntu-latest
     container:
       image: alpine:latest
