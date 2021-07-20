@@ -189,7 +189,13 @@ jobs:
       - name: ps again
         run: |
           cat /etc/kubernetes/admin.conf ||true
+          ip a || true
+          ip r || true
+          kubectl get node -v9 || true
+          docker logs "kind-control-plane"
           kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
+          kubectl get node -v9 || true
+          docker logs "kind-control-plane"
           cat /etc/kubernetes/admin.conf
           docker ps
           docker inspect "kind-control-plane"
