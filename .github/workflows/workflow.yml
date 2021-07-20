@@ -195,7 +195,7 @@ jobs:
           docker inspect "kind-control-plane"
           docker network list
           cat /etc/kubernetes/admin.conf ||true
-          for container in $(docker ps |awk '{print $1}'); do docker inspect $container; done
+          for container in $(docker ps --all --quiet |awk '{print $1}'); do docker inspect $container; done
           ip a && ip r
  
       - name: Check Node status
