@@ -188,12 +188,14 @@ jobs:
 
       - name: ps again
         run: |
+          cat /etc/kubernetes/admin.conf ||true
           kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
           cat /etc/kubernetes/admin.conf
           docker ps
           docker inspect "kind-control-plane"
           docker network list
-          for container in `docker ps |awk '{print $1}'`; do docker inspect $container; done
+          cat /etc/kubernetes/admin.conf ||true
+          for container in $(docker ps |awk '{print $1}'); do docker inspect $container; done
           ip a && ip r
  
       - name: Check Node status
