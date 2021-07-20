@@ -151,13 +151,13 @@ jobs:
         matrix:
            node:
             - "v1.21.2"
-            - "v1.17.17"
-            - "v1.16.15"
-            - "v1.18.19"
-            - "v1.15.12"
-            - "v1.19.11"
-            - "v1.20.7"
-            - "v1.14.10"
+#            - "v1.17.17"
+#            - "v1.16.15"
+#            - "v1.18.19"
+#            - "v1.15.12"
+#            - "v1.19.11"
+#            - "v1.20.7"
+#            - "v1.14.10"
     container:
       image: vr00mm/docker-kind:v0.1.0
       env:
@@ -194,10 +194,9 @@ jobs:
           #kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
 
           for container in $(docker ps --all --quiet |awk '{print $1}'); do docker inspect -f '{{.Id}}    {{.Config.Image}}    {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container >> containers  ; done
-          export THE_TARGET_ID=$(cat containers |grep -v buildx |grep -v kind |awk '{print $1}')
-          docker connect kind $THE_TARGET_ID
+#          export THE_TARGET_ID=$(cat containers |grep -v buildx |grep -v kind |awk '{print $1}')
           kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
-          kubectl get node -v9
+          docker run -ti --rm --network=kind -v /etc/kubernetes/admin.conf:/root/.kube/config alpine/helm list
 
       - name: Check Node status
         run: kubectl -v9 get node
