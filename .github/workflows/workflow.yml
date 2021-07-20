@@ -185,10 +185,12 @@ jobs:
           path: /tmp/chart.tgz
 
       - name: ps again
-        run: kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
+        run: |
+          kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
+          cat /etc/kubernetes/admin.conf
 
       - name: Check Node status
-        run: kubectl get node
+        run: kubectl -v9 get node
 
       - name: Dry-Run installation
         run: |
