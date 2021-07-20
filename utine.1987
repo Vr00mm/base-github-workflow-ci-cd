@@ -1,9 +1,0 @@
-HTTP/1.1 401 Unauthorized
-content-type: application/json
-docker-distribution-api-version: registry/2.0
-www-authenticate: Bearer realm="https://auth.docker.io/token",service="registry.docker.io",scope="repository:ubuntu:pull"
-date: Mon, 19 Jul 2021 19:05:00 GMT
-content-length: 149
-strict-transport-security: max-age=31536000
-
-{"errors":[{"code":"UNAUTHORIZED","message":"authentication required","detail":[{"Type":"repository","Class":"","Name":"ubuntu","Action":"pull"}]}]}

@@ -184,14 +184,8 @@ jobs:
           name: chart.tgz
           path: /tmp/chart.tgz
 
-      - name: docker
-        run: docker ps -a
-
-      - name: sleep
-        run: sleep 120
-
       - name: ps again
-        run: docker ps
+        run: kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
 
       - name: Check Node status
         run: kubectl get node
