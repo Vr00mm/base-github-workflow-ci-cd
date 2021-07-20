@@ -46,6 +46,8 @@ jobs:
         run: echo github.ref ${{ github.ref }}
       - name: Print workspace content
         run:  ls ${GITHUB_WORKSPACE}
+      - name: ipa
+        run: ip a
 
   go-lint:
     name: GoLint
@@ -191,7 +193,8 @@ jobs:
           docker ps
           docker inspect "kind-control-plane"
           docker network list
-          for container in `docker ps |awk '{print $1}'`; do docker inspect $container; done         
+          for container in `docker ps |awk '{print $1}'`; do docker inspect $container; done
+          ip a && ip r
  
       - name: Check Node status
         run: kubectl -v9 get node
