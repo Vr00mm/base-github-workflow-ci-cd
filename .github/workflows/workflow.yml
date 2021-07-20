@@ -186,9 +186,17 @@ jobs:
           name: chart.tgz
           path: /tmp/chart.tgz
 
-      - name: ps again
+      - name: Ips
+        run: ip a
+
+      - name: Networks and route
         run: |
+          #kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
+
           for container in $(docker ps --all --quiet |awk '{print $1}'); do docker inspect -f '{{.Id}}    {{.Config.Image}}    {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container  ; done
+          ip r
+          ip r get docker $(inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")
+
       - name: Check Node status
         run: kubectl -v9 get node
 
