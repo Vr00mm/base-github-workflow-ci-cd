@@ -194,7 +194,7 @@ jobs:
           #kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
 
           for container in $(docker ps --all --quiet |awk '{print $1}'); do docker inspect -f '{{.Id}}    {{.Config.Image}}    {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container >> containers  ; done
-#          export THE_TARGET_ID=$(cat containers |grep -v buildx |grep -v kind |awk '{print $1}')
+          #export THE_TARGET_ID=$(cat containers |grep -v buildx |grep -v kind |awk '{print $1}')
           kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
           docker run -ti --rm --network=kind -v /etc/kubernetes/admin.conf:/root/.kube/config alpine/helm list
 
