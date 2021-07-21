@@ -99,14 +99,7 @@ jobs:
           context: .
           file: ./docker/Dockerfile
           tags: ${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
-          build-args: APP_NAME="${APP_NAME}",GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}",BRANCH="${GITHUB_REF}"
-#            - COMMIT: '${GITHUB_SHA}'
-#            - BUILD_DATE: '$(date)'
-#            - BUILD_NB: '${GITHUB_RUN_NUMBER}'
-#            - APP_VERSION: '${APP_VERSION}'
-#            - DOCKER_VERSION: '$(docker --version)'
-#            - GO_BUILDER: 'test'
-#            - WORKSPACE: '${GITHUB_WORKSPACE}'
+          build-args: APP_NAME="${APP_NAME}",GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}",BRANCH="${GITHUB_REF}",COMMIT="${GITHUB_SHA}",BUILD_DATE="$(date)",BUILD_NB="${GITHUB_RUN_NUMBER}",APP_VERSION="${APP_VERSION}",DOCKER_VERSION="$(docker --version)",GO_BUILDER="test",WORKSPACE="${GITHUB_WORKSPACE}"
           outputs: type=docker,dest=/tmp/docker.tar
 
       - name: Image digest
@@ -176,6 +169,7 @@ jobs:
           kind create cluster --image=kindest/node:${{ matrix.node }} --wait 300s
           docker load --input /tmp/docker.tar
           kind load docker-image ${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
+          kubectl cluster-info --context kind-kind
 
       - name: Download Chart artifact
         uses: actions/download-artifact@v2
