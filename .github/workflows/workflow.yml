@@ -146,7 +146,7 @@ jobs:
   deploy-on-kind:
     name: "Deploying Helm Chart on kind cluster"
     needs: [infos, docker-build, helm-package]
-    runs-on: vr00mm/docker-kind:v0.1.0
+    runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-kind:v0.1.0
       env:
