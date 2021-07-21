@@ -147,10 +147,12 @@ jobs:
     name: "Deploying Helm Chart on kind cluster"
     needs: [infos, docker-build, helm-package]
     runs-on: vr00mm/docker-kind:v0.1.0
-    env:
-      APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
-      APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-      KUBECONFIG: "/etc/kubernetes/admin.conf"
+    container:
+      image: vr00mm/docker-kind:v0.1.0
+      env:
+        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+        APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
+        KUBECONFIG: "/etc/kubernetes/admin.conf"
     strategy:
         matrix:
            node:
