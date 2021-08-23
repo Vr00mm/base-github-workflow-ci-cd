@@ -164,12 +164,8 @@ jobs:
           name: docker.tar
           path: /tmp
 
-      - name: Create cluster
-        run: |
-          kind create cluster --image=kindest/node:${{ matrix.node }} --wait 300s
-          docker load --input /tmp/docker.tar
-          kind load docker-image ${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
-          kubectl cluster-info --context kind-kind
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.2.0
 
       - name: Download Chart artifact
         uses: actions/download-artifact@v2
@@ -177,20 +173,10 @@ jobs:
           name: chart.tgz
           path: /tmp/chart.tgz
 
-      - name: Ips
-        run: ip a
-
-      - name: Networks and route
+      - name: Test
         run: |
-          #kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
-
-          for container in $(docker ps --all --quiet |awk '{print $1}'); do docker inspect -f '{{.Id}}    {{.Config.Image}}    {{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' $container >> containers  ; done
-          #export THE_TARGET_ID=$(cat containers |grep -v buildx |grep -v kind |awk '{print $1}')
-          kind get kubeconfig --name "kind" --internal | sed "s/kind-control-plane/$(docker inspect "kind-control-plane" --format "{{ .NetworkSettings.Networks.kind.IPAddress }}")/g" > /etc/kubernetes/admin.conf
-          docker run -ti --rm --network=kind -v /etc/kubernetes/admin.conf:/root/.kube/config alpine/helm list
-
-      - name: Check Node status
-        run: kubectl -v9 get node
+          kubectl cluster-info
+          kubectl get storageclass standard
 
       - name: Dry-Run installation
         run: |
