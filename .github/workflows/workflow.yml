@@ -149,12 +149,9 @@ jobs:
            node:
             - "v1.21.2"
 #            - "v1.17.17"
-#            - "v1.16.15"
 #            - "v1.18.19"
-#            - "v1.15.12"
 #            - "v1.19.11"
 #            - "v1.20.7"
-#            - "v1.14.10"
     steps:
       - name: Download artifact
         uses: actions/download-artifact@v2
@@ -167,6 +164,11 @@ jobs:
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.2.0
+
+      - uses: azure/setup-helm@v1
+        with:
+          version: 'v3.7.1' # default is latest stable
+        id: install
 
       - name: Download Chart artifact
         uses: actions/download-artifact@v2
@@ -181,13 +183,12 @@ jobs:
 
       - name: Dry-Run installation
         run: |
-          kubectl create namespace "dry-run"
-          helm upgrade --install "my-chart" /tmp/chart.tgz -n 'dry-run' --dry-run
+          helm upgrade --install "my-chart" /tmp/chart.tgz -n 'dry-run' --create-namespace --dry-run
 
       - name: Test Chart installation
         run: |
-          helm upgrade --install "my-chart" /tmp/chart.tgz -n "dry-run" --wait
-          kubectl wait --for=condition=Ready pod --all -n "dry-run" --timeout=300s
+          helm upgrade --install "my-chart" /tmp/chart.tgz -n "dry-run" --create-namespace --wait
+          #kubectl wait --for=condition=Ready pod --all -n "dry-run" --timeout=300s
 
   docker-push:
     if: ${{ github.ref == 'refs/heads/master' }}
