@@ -175,7 +175,7 @@ jobs:
 
       - name: Test
         run: |
-          kubectl cluster-info
+          kubectl cluster-info --context kind-chart-testing
           kubectl get storageclass standard
 
       - name: Dry-Run installation
