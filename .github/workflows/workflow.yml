@@ -140,12 +140,11 @@ jobs:
     name: "Deploying Helm Chart on kind cluster"
     needs: [infos, docker-build, helm-package]
     runs-on: ubuntu-latest
-    container:
-      image: vr00mm/docker-kind:v0.1.0
-      env:
-        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
-        APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-        KUBECONFIG: "/etc/kubernetes/admin.conf"
+    image: vr00mm/docker-kind:v0.1.0
+    env:
+      APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+      APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
+      KUBECONFIG: "/etc/kubernetes/admin.conf"
     strategy:
         matrix:
            node:
@@ -163,6 +162,9 @@ jobs:
         with:
           name: docker.tar
           path: /tmp
+
+      - uses: azure/setup-kubectl@v1
+        id: install
 
       - name: Create k8s Kind Cluster
         uses: helm/kind-action@v1.2.0
