@@ -143,7 +143,7 @@ jobs:
     env:
       APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
       APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-      KUBECONFIG: "/etc/kubernetes/admin.conf"
+      KUBECONFIG: "/tmp/kubernetes/admin.conf"
     strategy:
         matrix:
            node:
