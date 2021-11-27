@@ -168,7 +168,6 @@ jobs:
       - uses: azure/setup-helm@v1
         with:
           version: 'v3.7.1' # default is latest stable
-        id: install
 
       - name: Download Chart artifact
         uses: actions/download-artifact@v2
