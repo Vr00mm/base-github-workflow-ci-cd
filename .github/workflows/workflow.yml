@@ -244,6 +244,12 @@ jobs:
         run: |
           helm upgrade --install "${APP_NAME}" "private-registry/${APP_NAME}" --namespace "${APP_NAME}" --create-namespace --dry-run
 
+      - run: echo ::set-output name=status::success
+        id: dryrun-status
+
+    outputs:
+      STATUS: ${{ steps.get-version.outputs.dryrun-status }}
+
   release:
 #    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
     if: contains(github.ref, 'refs/tags/')
@@ -260,7 +266,7 @@ jobs:
 
   deploy:
     name: "Deploy"
-    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') && needs.'deploy-dry-run'.outputs.'job-status' == "Success" }}
+    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') && ( needs.deploy-dry-run.outputs.STATUS == "Success" ) }}
     needs: [infos, deploy-dry-run, release]
     runs-on: ubuntu-latest
     container:
