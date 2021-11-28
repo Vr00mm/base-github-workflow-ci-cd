@@ -11,7 +11,6 @@ jobs:
 
   infos:
     name: Get Infos
-    id: infos
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
@@ -197,7 +196,7 @@ jobs:
 
       - name: Deploy Dry-Run
         run: |
-          helm upgrade --install "release-name" "${APP_NAME}" --namespace "namespace" --create-namespace --dry-run
+          helm upgrade --install "release-name" "private-registry/${APP_NAME}" --namespace "namespace" --create-namespace --dry-run
 
   release:
 #    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
@@ -212,7 +211,6 @@ jobs:
     steps:
       - name: helm dry-run
         run: helm upgrade install package-version-1.0.0.tgz
-
 
   deploy:
     name: "Deploy"
