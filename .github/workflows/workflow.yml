@@ -158,7 +158,7 @@ jobs:
 
       - name: Helm Push
         run: |
-          helm push "${GITHUB_WORKSPACE}/${APP_NAME}-*" private-registry
+          helm push "${GITHUB_WORKSPACE}/${APP_NAME}-*" "${CHARTMUSEUM_URL}"
 
  
   deploy-dry-run:
