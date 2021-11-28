@@ -118,12 +118,23 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
+          build-args: |
+            APP_NAME=${APP_NAME}
+            GIT_REPOSITORY=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}
+            BRANCH=${GITHUB_REF}
+            COMMIT=${GITHUB_SHA}
+            BUILD_DATE=$(date)
+            BUILD_NB=${GITHUB_RUN_NUMBER}"
+            APP_VERSION=${APP_VERSION}
+            DOCKER_VERSION=$(docker --version)
+            GO_BUILDER=test
+            WORKSPACE=${GITHUB_WORKSPACE}
+            DOCKER_HUB=${{ secrets.DOCKER_REGISTRY }}/${{ needs.infos.outputs.APP_REPO }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}"
           context: .
           push: true
           file: ./docker/Dockerfile
           platforms: linux/amd64
           tags: ${{ secrets.DOCKER_REGISTRY }}/${{ needs.infos.outputs.APP_REPO }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
-          build-args: APP_NAME="${APP_NAME}",GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}",BRANCH="${GITHUB_REF}",COMMIT="${GITHUB_SHA}",BUILD_DATE="$(date)",BUILD_NB="${GITHUB_RUN_NUMBER}",APP_VERSION="${APP_VERSION}",DOCKER_VERSION="$(docker --version)",GO_BUILDER="test",WORKSPACE="${GITHUB_WORKSPACE},DOCKER_HUB="${{ secrets.DOCKER_REGISTRY }}/${{ needs.infos.outputs.APP_REPO }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}"
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
@@ -161,8 +172,9 @@ jobs:
     container:
       image: vr00mm/docker-helm-client:v0.2.0
       env:
-        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+        APP_REPO: ${{ needs.infos.outputs.APP_REPO }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
+        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         KUBECONFIG: "/tmp/kubeconfig"
         HELM_REPO: ${{ secrets.HELM_REGISTRY }}
         HELM_REPO_USERNAME: ${{ secrets.HELM_REGISTRY_USERNAME }}
