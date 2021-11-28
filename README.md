@@ -5,7 +5,7 @@ This is my CI/CD base workflow for go micro-services in kubernetes.<br>
 
 
 # The Gitflow
-![GitFlow](imgs/test.svg)
+![GitFlow](imgs/gitflow.svg)
 
 ## Important
 In your development process, you must strictly distinguish between Features, Fixes and Hot Fixes.
@@ -82,7 +82,7 @@ To configure git-flow in the project, execute ```git-flow init -d``` into the gi
 ```
 
 # The Github workflow
-![GitFlow](imgs/workflow2.png)
+![GitFlow](imgs/workflow.png)
 
 
 ## Requirements
