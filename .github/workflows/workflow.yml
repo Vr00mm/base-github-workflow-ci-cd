@@ -185,8 +185,8 @@ jobs:
 
       - name: Init Kubeconfig
         run: |
-          echo "${{ secrets.KUBECONFIG }}" > /tmp/kubeconfig
-          chmod 0600 /tmp/kubeconfig
+          echo "${{ secrets.KUBECONFIG }}" > ${KUBECONFIG}
+          chmod 0600 ${KUBECONFIG}
 
       - name: Add Helm Registry
         run: |
@@ -195,12 +195,12 @@ jobs:
 
       - name: Deploy Dry-Run
         run: |
-          helm upgrade --install "release-name" "private-registry/${APP_NAME}" --namespace "namespace" --create-namespace --dry-run
+          helm upgrade --install "${APP_NAME}" "private-registry/${APP_NAME}" --namespace "${APP_NAME}" --create-namespace --dry-run
 
   release:
 #    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
     if: contains(github.ref, 'refs/tags/')
-    name: Release
+    name: Release Binary
     needs: [infos, deploy-dry-run]
     runs-on: ubuntu-latest
     container:
@@ -211,18 +211,37 @@ jobs:
       - name: helm dry-run
         run: helm upgrade install package-version-1.0.0.tgz
 
-  deploy:
-    name: "Deploy"
-    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') }}
-    needs: [infos, deploy-dry-run, release]
+  deploy-chart:
+    name: "Deploy Helm Chart"
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
+    needs: [infos, helm-package-push]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
       env:
-        ENV_VAR: test-helm
+        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+        APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
+        HELM_REPO: ${{ secrets.HELM_REGISTRY }}
+        HELM_REPO_USERNAME: ${{ secrets.HELM_REGISTRY_USERNAME }}
+        HELM_REPO_PASSWORD: ${{ secrets.HELM_REGISTRY_PASSWORD }}
+        KUBECONFIG: "/tmp/kubeconfig"
     steps:
-      - name: helm dry-run
-        run: helm upgrade install package-version-1.0.0.tgz
+      - name: Load Workspace
+        uses: actions/checkout@v2
+
+      - name: Init Kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > ${KUBECONFIG}
+          chmod 0600 ${KUBECONFIG}
+
+      - name: Add Helm Registry
+        run: |
+          helm repo add private-registry "${HELM_REPO}" --username ${HELM_REPO_USERNAME} --password ${HELM_REPO_PASSWORD}
+          helm repo update
+
+      - name: Deploy Dry-Run
+        run: |
+          helm upgrade --install "${APP_NAME}" "private-registry/${APP_NAME}" --namespace "${APP_NAME}" --create-namespace
 
   post-always:
     name: Result
