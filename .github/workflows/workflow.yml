@@ -200,7 +200,7 @@ jobs:
   release:
 #    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
     if: contains(github.ref, 'refs/tags/')
-    name: Release Binary
+    name: Release
     needs: [infos, deploy-dry-run]
     runs-on: ubuntu-latest
     container:
@@ -212,9 +212,9 @@ jobs:
         run: helm upgrade install package-version-1.0.0.tgz
 
   deploy:
-    name: "Deploy Helm Chart"
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
-    needs: [infos, helm-package-push]
+    name: "Deploy"
+    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') }}
+    needs: [infos, deploy-dry-run, release]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
