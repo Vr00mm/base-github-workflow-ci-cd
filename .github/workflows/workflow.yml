@@ -197,8 +197,7 @@ jobs:
       STATUS: ${{ steps.docker-status.outputs.status }}
 
   helm-doc:
-    needs: [infos, deploy]
-    if: ${{ always() && needs.deploy.outputs.STATUS == 'success' }}
+    needs: [infos]
     name: "Helm documentation"
     runs-on: ubuntu-latest
     container:
