@@ -214,6 +214,10 @@ jobs:
       - name: Generate Documentation
         run: |
           helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
+          git config --local user.name "CI/CD"
+          git config --local user.email ""
+
+          git 
           if [[ $(git diff |wc -l) -gt 0 ]]; then
             currentBranch=`git branch`
             git checkout -b feature/${{ needs.infos.outputs.GITHUB_REF }}-bump-doc
@@ -222,8 +226,18 @@ jobs:
             git commit -m "[CI/CD] Auto regenerate documentation"
             git checkout currentBranch
             git merge feature/${{ needs.infos.outputs.GITHUB_REF }}-bump-doc
-            exit 1
+            echo ::set-output name=status::error
           fi
+
+      - name: Push changes # push the output folder to your repo
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+
+      - name: Status
+        run: |
+          [[ "${{needs.helm-lint.outputs.STATUS == 'error' }}" ]] && exit 1
 
   helm-package-push:
     needs: [infos, helm-lint, docker-build-push]
