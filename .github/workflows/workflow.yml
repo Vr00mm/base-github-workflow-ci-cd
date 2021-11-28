@@ -146,14 +146,9 @@ jobs:
       - name: Load Workspace
         uses: actions/checkout@v2
 
-      - name: Helm Package
-        run: |
-          helm dependency update ${GITHUB_WORKSPACE}/helm/${APP_NAME}
-          helm package ${GITHUB_WORKSPACE}/helm/${APP_NAME} --destination ${GITHUB_WORKSPACE}/helm/${APP_NAME}-${APP_VERSION}.tgz
-
       - name: Helm Push
         run: |
-          helm cm-push "${GITHUB_WORKSPACE}/helm/${APP_NAME}-${APP_VERSION}.tgz" "${CHARTMUSEUM_URL}" \
+          helm cm-push "${GITHUB_WORKSPACE}/helm/${APP_NAME}" "${CHARTMUSEUM_URL}" \
             --version "${APP_VERSION}"  \
             --app-version "${APP_VERSION}"
  
