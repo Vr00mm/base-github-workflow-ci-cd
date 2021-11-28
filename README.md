@@ -1,5 +1,15 @@
 # base-github-workflow-ci-cd
 [![Release](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml/badge.svg?branch=master)](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml)
+[![Maintened](https://img.shields.io/github/release/vr00mm/base-github-workflow-ci-cd.svg)](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml)
+
+
+[![Maintened](https://img.shields.io/github/issues/vr00mm/base-github-workflow-ci-cd.svg)](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml)
+[![Maintened](https://img.shields.io/github/issues-pr/vr00mm/base-github-workflow-ci-cd.svg)](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml)
+
+[![Maintened](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml)
+[![Maintened](https://img.shields.io/badge/Ask%20me-anything-1abc9c.svg)](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml)
+
+[![Maintened](https://img.shields.io/website-up-down-green-red/http/github.io/vr00mm.svg)](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml)
 
 This is my CI/CD base workflow for go micro-services in kubernetes.<br>
 
