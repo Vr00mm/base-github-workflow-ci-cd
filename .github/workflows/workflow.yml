@@ -37,11 +37,29 @@ jobs:
         run: |
           APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]' | awk -F/ '{print $2}'`
           echo "::set-output name=APP_NAME::${APP_NAME}"
+
+      - name: Get-GithubInfos
+        id: githubInfos
+        run: |
+          echo "::set-output name=GITHUB_SERVER_URL::${GITHUB_SERVER_URL}"
+          echo "::set-output name=GITHUB_REPOSITORY::${GITHUB_REPOSITORY}"
+          echo "::set-output name=GITHUB_REF::${GITHUB_REF}"
+          echo "::set-output name=GITHUB_SHA::${GITHUB_SHA}"
+          echo "::set-output name=GITHUB_RUN_NUMBER::${GITHUB_RUN_NUMBER}"
+          echo "::set-output name=GITHUB_WORKSPACE::${GITHUB_WORKSPACE}"
+
     outputs:
       CURRENT_VERSION: ${{ steps.get-version.outputs.CURRENT_VERSION }}
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
       APP_REPO: ${{ steps.appRepo.outputs.APP_REPO }}
       APP_NAME: ${{ steps.appName.outputs.APP_NAME }}
+
+      GITHUB_SERVER_URL: ${{ steps.githubInfos.outputs.GITHUB_SERVER_URL }}
+      GITHUB_REPOSITORY: ${{ steps.githubInfos.outputs.GITHUB_REPOSITORY }}
+      GITHUB_REF: ${{ steps.githubInfos.outputs.GITHUB_REF }}
+      GITHUB_SHA: ${{ steps.githubInfos.outputs.GITHUB_SHA }}
+      GITHUB_RUN_NUMBER: ${{ steps.githubInfos.outputs.GITHUB_RUN_NUMBER }}
+      GITHUB_WORKSPACE: ${{ steps.githubInfos.outputs.GITHUB_WORKSPACE }}
 
   print-infos:
     needs: infos
@@ -56,6 +74,15 @@ jobs:
           echo APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
           echo CURRENT_VERSION: ${{ needs.infos.outputs.CURRENT_VERSION }}
           echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+      
+        name: Print-GithubInfos
+        run: |
+          echo GITHUB_SERVER_URL: ${{ needs.infos.outputs.GITHUB_SERVER_URL }}
+          echo GITHUB_REPOSITORY: ${{ needs.infos.outputs.GITHUB_REPOSITORY }}
+          echo GITHUB_REF: ${{ needs.infos.outputs.GITHUB_REF }}
+          echo GITHUB_SHA: ${{ needs.infos.outputs.GITHUB_SHA }}
+          echo GITHUB_RUN_NUMBER: ${{ needs.infos.outputs.GITHUB_RUN_NUMBER }}
+          echo GITHUB_WORKSPACE: ${{ needs.infos.outputs.GITHUB_WORKSPACE }}
 
       - name: Print-Env
         run: printenv
@@ -100,10 +127,6 @@ jobs:
     needs: [infos, go-lint, helm-lint]
     name: "Build Container Image"
     runs-on: ubuntu-latest
-    env:
-      APP_REPO: ${{ needs.infos.outputs.APP_REPO }}
-      APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-      APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -118,20 +141,26 @@ jobs:
           username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
           password: ${{ secrets.DOCKER_REGISTRY_TOKEN }}
 
+      - name: Docker Infos
+        id: dockerInfos
+        run: |
+          echo "::set-output name=CUR_DATE::$(date)"
+          echo "::set-output name=DOCKER_VERSION::$(docker --version)"
+
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           build-args: |
-            APP_NAME=${APP_NAME}
-            GIT_REPOSITORY=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}
-            BRANCH=${GITHUB_REF}
-            COMMIT=${GITHUB_SHA}
-            BUILD_DATE=$(date)
-            BUILD_NB=${GITHUB_RUN_NUMBER}"
-            APP_VERSION=${APP_VERSION}
-            DOCKER_VERSION=$(docker --version)
+            APP_NAME=${{ needs.infos.outputs.APP_NAME }}
+            GIT_REPOSITORY=${{ needs.infos.outputs.GITHUB_SERVER_URL }}/${{ needs.infos.outputs.GITHUB_REPOSITORY }}           
+            BRANCH=${{ needs.infos.outputs.GITHUB_REF }}
+            COMMIT=${{ needs.infos.outputs.GITHUB_SHA }}
+            BUILD_DATE=${{ steps.dockerInfos.outputs.CUR_DATE }}
+            BUILD_NB=${{ needs.infos.outputs.GITHUB_RUN_NUMBER }}
+            APP_VERSION=${{ needs.infos.outputs.NEXT_VERSION }}
+            DOCKER_VERSION=${{ steps.dockerInfos.outputs.DOCKER_VERSION }}
             GO_BUILDER=test
-            WORKSPACE=${GITHUB_WORKSPACE}
+            WORKSPACE=${{ needs.infos.outputs.GITHUB_WORKSPACE }}
             DOCKER_HUB=${{ secrets.DOCKER_REGISTRY }}/${{ needs.infos.outputs.APP_REPO }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}"
           context: .
           push: true
