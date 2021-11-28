@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     branches:
-      - 'main'
+      - 'master'
       - 'feature/**'
       - 'bugfix/**'
       - 'hotfix/**'
@@ -125,6 +125,7 @@ jobs:
   go-lint:
     name: GoLint
     needs: infos
+    if: ${{ needs.infos.outputs.APP_CHANGES == 'true' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -137,6 +138,7 @@ jobs:
   helm-lint:
     needs: [infos]
     name: "HelmLint"
+    if: ${{ always() && needs.infos.outputs.CHART_CHANGES == 'true' }}
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
