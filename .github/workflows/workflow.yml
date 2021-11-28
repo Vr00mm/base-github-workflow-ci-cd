@@ -298,7 +298,7 @@ jobs:
 
   helm-doc:
     needs: [infos, deploy-dry-run]
-    name: "Package Helm Chart"
+    name: "Helm documentation"
     runs-on: ubuntu-latest
     container:
       image: jnorwood/helm-docs:latest
