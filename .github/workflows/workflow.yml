@@ -153,7 +153,7 @@ jobs:
 
       - name: Helm Push
         run: |
-          helm push ${GITHUB_WORKSPACE}/${APP_NAME}-* ${CHARTMUSEUM_URL} -u ${CHARTMUSEUM_USER} -p ${CHARTMUSEUM_PASSWORD}
+          helm push "${GITHUB_WORKSPACE}/${APP_NAME}-*" "${CHARTMUSEUM_URL}" --username "${CHARTMUSEUM_USER}" --password "${CHARTMUSEUM_PASSWORD}"
 
  
   deploy-dry-run:
