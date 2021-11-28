@@ -1,4 +1,5 @@
 # base-github-workflow-ci-cd
+[![Release](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml/badge.svg?branch=master)](https://github.com/Vr00mm/base-github-workflow-ci-cd/actions/workflows/workflow.yml)
 
 This is my CI/CD base workflow for go micro-services in kubernetes.<br>
 
@@ -76,9 +77,8 @@ To configure git-flow in the project, execute ```git-flow init -d``` into the gi
 ## Create feature/bugfix/support branch
 ```
   # Replace feature with bugfix or support
-  git flow feature
-  git flow feature start <release> [<base>]
-  git flow release finish <release>
+  git flow feature start <name>
+  git flow release finish <name>
 ```
 
 # The Github workflow
@@ -138,3 +138,9 @@ Its release the binary if we are on a tag branch
 
 ## Deploy
 Its deploy the Helm chart into kubernetes
+
+# The incoming
+ - refacto semver plugin to deal with chart and app
+ - add chart documentation auto-generation
+ - improve workflow to get conditionnal docker / helm / deployment depending of commit destination / current branch/tag or project variable
+ - improve workflow to deal with multiple cluster / deployment depending of current branch (ex dev, prod, internal-prod)

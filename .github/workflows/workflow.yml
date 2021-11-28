@@ -1,10 +1,13 @@
-name: docker-Helm
+name: Release
 on:
   workflow_dispatch:
   push:
     branches:
-      - 'master'
+      - 'main'
       - 'feature/**'
+      - 'bugfix/**'
+      - 'hotfix/**'
+      - 'support/**'
   pull_request:
     branches:
       - 'master'
@@ -32,6 +35,21 @@ jobs:
           APP_REPO=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]' | awk -F/ '{print $1}'`
           echo "::set-output name=APP_REPO::${APP_REPO}"
 
+      - uses: dorny/paths-filter@v2
+        id: appChanges
+        with:
+          filters: |
+            src:
+              - 'src/**'
+              - 'docker/**'
+
+      - uses: dorny/paths-filter@v2
+        id: chartChanges
+        with:
+          filters: |
+            src:
+              - 'helm/**'
+
       - name: Get-AppName
         id: appName
         run: |
@@ -54,6 +72,9 @@ jobs:
       APP_REPO: ${{ steps.appRepo.outputs.APP_REPO }}
       APP_NAME: ${{ steps.appName.outputs.APP_NAME }}
 
+      APP_CHANGES: ${{ steps.appChanges.outputs.src }}
+      CHART_CHANGES: ${{ steps.chartChanges.outputs.src }}
+
       GITHUB_SERVER_URL: ${{ steps.githubInfos.outputs.GITHUB_SERVER_URL }}
       GITHUB_REPOSITORY: ${{ steps.githubInfos.outputs.GITHUB_REPOSITORY }}
       GITHUB_REF: ${{ steps.githubInfos.outputs.GITHUB_REF }}
@@ -68,21 +89,29 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Print-Changes
+        run: |
+          echo "## CHANGES DETECTED"
+          echo "    APP_CHANGE    -> " ${{ needs.infos.outputs.APP_CHANGES }}
+          echo "    CHART_CHANGE  -> " ${{ needs.infos.outputs.CHART_CHANGES }}
+
       - name: Print-Infos
         run: |
-          echo APP_REPO: ${{ needs.infos.outputs.APP_REPO }}
-          echo APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-          echo CURRENT_VERSION: ${{ needs.infos.outputs.CURRENT_VERSION }}
-          echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+          echo "## APP INFOS"
+          echo "    APP_REPO:         -> " ${{ needs.infos.outputs.APP_REPO }}
+          echo "    APP_NAME:         -> " ${{ needs.infos.outputs.APP_NAME }}
+          echo "    CURRENT_VERSION:  -> " ${{ needs.infos.outputs.CURRENT_VERSION }}
+          echo "    NEXT_VERSION:     -> " ${{ needs.infos.outputs.NEXT_VERSION }}
       
       - name: Print-GithubInfos
         run: |
-          echo GITHUB_SERVER_URL: ${{ needs.infos.outputs.GITHUB_SERVER_URL }}
-          echo GITHUB_REPOSITORY: ${{ needs.infos.outputs.GITHUB_REPOSITORY }}
-          echo GITHUB_REF: ${{ needs.infos.outputs.GITHUB_REF }}
-          echo GITHUB_SHA: ${{ needs.infos.outputs.GITHUB_SHA }}
-          echo GITHUB_RUN_NUMBER: ${{ needs.infos.outputs.GITHUB_RUN_NUMBER }}
-          echo GITHUB_WORKSPACE: ${{ needs.infos.outputs.GITHUB_WORKSPACE }}
+          echo "## GITHUB INFOS"
+          echo "    GITHUB_SERVER_URL -> " ${{ needs.infos.outputs.GITHUB_SERVER_URL }}
+          echo "    GITHUB_REPOSITORY -> " ${{ needs.infos.outputs.GITHUB_REPOSITORY }}
+          echo "    GITHUB_REF:       -> " ${{ needs.infos.outputs.GITHUB_REF }}
+          echo "    GITHUB_SHA:       -> " ${{ needs.infos.outputs.GITHUB_SHA }}
+          echo "    GITHUB_RUN_NUMBER -> " ${{ needs.infos.outputs.GITHUB_RUN_NUMBER }}
+          echo "    GITHUB_WORKSPACE  -> " ${{ needs.infos.outputs.GITHUB_WORKSPACE }}
 
       - name: Print-Env
         run: printenv
@@ -99,7 +128,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
@@ -118,7 +146,6 @@ jobs:
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
-
       - name: Helm lint
         run: helm lint ./helm/${APP_NAME}
 
