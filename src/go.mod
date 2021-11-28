@@ -1,3 +1,6 @@
-module github.com/vr00mm/base-github-workflow-ci-cd
+module github.com/vr00mm/git-semv
+
+require (
+)
 
 go 1.17
