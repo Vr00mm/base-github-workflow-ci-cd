@@ -154,7 +154,7 @@ jobs:
         id: doc-gen
         run: |
           set -x
-          git config --local user.name "CI/CD"
+          git config --local user.name "[CI/CD]:"
           git config --local user.email ""
           echo ::set-output name=status::success
 
@@ -170,7 +170,7 @@ jobs:
           if [[ $diff != 0 ]]; then
             git status
             git add .
-            git commit -m "[CI/CD] Auto regenerate documentation"
+            git commit -sm "Auto regenerate helm documentation"
             git checkout ${currentBranch}
             git merge feature/${newFeature}
             git branch -d feature/${newFeature}
@@ -184,10 +184,10 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: true
 
-      - name: Skip
+      - name: Result
         run: |
-          [[ "${{steps.doc-gen.outputs.status == 'error' }}" ]] && exit 1
-          
+          [[ "${{steps.doc-gen.outputs.status == 'error' }}" ]] && echo "Generated Documentations"
+
   docker-build-push:
     needs: [infos, go-lint, helm-doc]
     name: "Build Container Image"
