@@ -159,7 +159,7 @@ jobs:
             BUILD_NB=${{ needs.infos.outputs.GITHUB_RUN_NUMBER }}
             APP_VERSION=${{ needs.infos.outputs.NEXT_VERSION }}
             DOCKER_VERSION=${{ steps.dockerInfos.outputs.DOCKER_VERSION }}
-            GO_BUILDER=test
+            GO_VERSION=1.17
             WORKSPACE=${{ needs.infos.outputs.GITHUB_WORKSPACE }}
             DOCKER_HUB=${{ secrets.DOCKER_REGISTRY }}/${{ needs.infos.outputs.APP_REPO }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}"
           context: .
