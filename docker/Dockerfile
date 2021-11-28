@@ -7,8 +7,19 @@ ARG BUILD_VERSION
 ARG DOCKER_VERSION
 ARG GO_VERSION
 ARG WORKSPACE
+ARG DOCKER_HUB
 
-FROM alpine:latest
+FROM golang:1.17-bullseye as build
+
+WORKDIR /go/src/app
+ADD ./src /go/src/app
+
+RUN go get -d -v ./...
+
+RUN go build -o /go/bin/app
+
+# Now copy it into our base image.
+FROM gcr.io/distroless/base-debian11
 
 LABEL APP_NAME=$APP_NAME
 LABEL GIT_REPOSITORY=$GIT_REPOSITORY
@@ -16,11 +27,9 @@ LABEL BRANCH=$BRANCH
 LABEL COMMIT=$COMMIT
 LABEL BUILD_DATE=$BUILD_DATE
 LABEL BUILD_VERSION=$BUILD_VERSION
+LABEL DOCKER_HUB=$DOCKER_HUB
 LABEL DOCKER_VERSION=$DOCKER_VERSION
 LABEL GO_VERSION=$GO_VERSION
 
-
-RUN apk update && apk add tree
-
-
-ENTRYPOINT ["/bin/sh"]
+COPY --from=build /go/bin/app /
+CMD ["/app"]
