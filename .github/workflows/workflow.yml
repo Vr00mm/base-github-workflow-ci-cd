@@ -212,9 +212,10 @@ jobs:
           git config --local user.email ""
           echo ::set-output name=status::success
 
-          currentBranch=`git branch`
-          newFeatureRaw=${{ needs.infos.outputs.GITHUB_REF }}-doc-update
-          newFeature=`echo ${newFeatureRaw##*/}`
+          currentBranch=vr00mm/test-vr00mm                   
+          currentBranch=${currentBranch##*/}
+
+          newFeature=${currentBranch}-doc-update
 
           git checkout -b feature/${newFeature}
           ./bin/helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
@@ -230,6 +231,7 @@ jobs:
             git push
             echo ::set-output name=status::error
           fi
+
       - name: Push changes # push the output folder to your repo
         uses: ad-m/github-push-action@master
         with:
