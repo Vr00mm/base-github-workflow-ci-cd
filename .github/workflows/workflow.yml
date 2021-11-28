@@ -38,6 +38,8 @@ jobs:
     name: Print Infos
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+
       - name: Print-Version
         run: |
           echo CURRENT_VERSION: ${{ needs.infos.outputs.CURRENT_VERSION }}
@@ -193,16 +195,13 @@ jobs:
           kubectl cluster-info --context kind-chart-testing
           kubectl get storageclass standard
 
-      - run: ls ${GITHUB_WORKSPACE}
-      - run: ls
-
       - name: Dry-Run installation
         run: |
-          helm upgrade --install "my-chart" /tmp/chart.tgz -n 'dry-run' --create-namespace --dry-run
+          helm upgrade --install "my-chart" ./helm/${APP_NAME} -n 'dry-run' --create-namespace --dry-run
 
       - name: Test Chart installation
         run: |
-          helm upgrade --install "my-chart" /tmp/chart.tgz -n "dry-run" --create-namespace --wait
+          helm upgrade --install "my-chart" ./helm/${APP_NAME} -n "dry-run" --create-namespace --wait
           #kubectl wait --for=condition=Ready pod --all -n "dry-run" --timeout=300s
 
   docker-push:
