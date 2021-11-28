@@ -140,9 +140,8 @@ jobs:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
         CHARTMUSEUM_URL: ${{ secrets.HELM_REGISTRY }}
-        CHARTMUSEUM_USER: ${{ secrets.HELM_REGISTRY_USERNAME }}
-        CHARTMUSEUM_PASSWORD: ${{ secrets.HELM_REGISTRY_PASSWORD }}
-        HELM_EXPERIMENTAL_OCI: 1
+        HELM_REPO_USERNAME: ${{ secrets.HELM_REGISTRY_USERNAME }}
+        HELM_REPO_PASSWORD: ${{ secrets.HELM_REGISTRY_PASSWORD }}
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
@@ -150,12 +149,13 @@ jobs:
       - name: Helm Package
         run: |
           helm dependency update ${GITHUB_WORKSPACE}/helm/${APP_NAME}
-          helm package ${GITHUB_WORKSPACE}/helm/${APP_NAME} --app-version ${APP_VERSION}
+          helm package ${GITHUB_WORKSPACE}/helm/${APP_NAME} --destination ${GITHUB_WORKSPACE}/helm/${APP_NAME}-${APP_VERSION}.tgz
 
       - name: Helm Push
         run: |
-          helm cm-push "${APP_NAME}-0.1.0.tgz" "${CHARTMUSEUM_URL}" --username "${CHARTMUSEUM_USER}" --password "${CHARTMUSEUM_PASSWORD}" --version ${APP_VERSION}
-
+          helm cm-push "${GITHUB_WORKSPACE}/helm/${APP_NAME}-${APP_VERSION}.tgz" "${CHARTMUSEUM_URL}" \
+            --version "${APP_VERSION}"  \
+            --app-version "${APP_VERSION}"
  
   deploy-dry-run:
     name: "Dry Run Deploy"
