@@ -179,14 +179,14 @@ jobs:
         with:
           version: 'v3.7.1' # default is latest stable
 
-      - name: Download Chart artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: chart.tgz
-          path: /tmp/chart.tgz
+#      - name: Download Chart artifact
+#        uses: actions/download-artifact@v2
+#        with:
+#          name: chart.tgz
+#          path: /tmp/chart.tgz
 
-      - name: Unpack chart
-        run: tar xzvf /tmp/chart.tgz
+#      - name: Unpack chart
+#        run: tar xzvf /tmp/chart.tgz
 
       - name: Test
         run: |
