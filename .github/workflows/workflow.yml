@@ -148,9 +148,10 @@ jobs:
 
       - name: Helm Push
         run: |
-          helm cm-push "${GITHUB_WORKSPACE}/helm/${APP_NAME}" "${CHARTMUSEUM_URL}" \
+          helm cm-push \
             --version "${APP_VERSION}"  \
-            --app-version "${APP_VERSION}"
+            --app-version "${APP_VERSION}" \
+          "${GITHUB_WORKSPACE}/helm/${APP_NAME}" "${CHARTMUSEUM_URL}"
  
   deploy-dry-run:
     name: "Dry Run Deploy"
