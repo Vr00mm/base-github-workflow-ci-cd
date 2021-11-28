@@ -206,6 +206,11 @@ jobs:
       - name: Load Workspace
         uses: actions/checkout@v2
 
+      - name: Setup Git
+        run: |
+          apk update
+          apk install git
+          
       - name: Generate Documentation
         run: |
           helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
