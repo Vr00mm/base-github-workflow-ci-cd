@@ -148,8 +148,8 @@ jobs:
 
       - name: Helm Package
         run: |
-          helm dependency update .
-          helm package ${GITHUB_WORKSPACE}/helm/${APP_NAME} --app-version ${APP_VERSION} --destination /tmp/chart.tgz
+          helm dependency update ${GITHUB_WORKSPACE}/helm/${APP_NAME}
+          helm package ${GITHUB_WORKSPACE}/helm/${APP_NAME} --app-version ${APP_VERSION}
 
       - name: Helm Push
         run: |
