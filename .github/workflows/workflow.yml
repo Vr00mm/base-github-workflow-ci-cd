@@ -210,7 +210,9 @@ jobs:
           ./bin/helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
           git config --local user.name "CI/CD"
           git config --local user.email ""
-          if [[ $(git diff |wc -l) -gt 0 ]]; then
+
+          diff=`git diff |wc -l`
+          if [[ $diff != 0 ]]; then
             currentBranch=`git branch`
             git checkout -b feature/${{ needs.infos.outputs.GITHUB_REF }}-doc-update
             git status
@@ -218,6 +220,8 @@ jobs:
             git commit -m "[CI/CD] Auto regenerate documentation"
             git checkout ${currentBranch}
             git merge feature/${{ needs.infos.outputs.GITHUB_REF }}-doc-update
+            git branch -d feature/${{ needs.infos.outputs.GITHUB_REF }}-doc-update
+            git push
             echo ::set-output name=status::error
           fi
 
