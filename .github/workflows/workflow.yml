@@ -8,6 +8,7 @@ on:
     branches:
       - 'master'
 jobs:
+
   infos:
     name: Get Infos
     runs-on: ubuntu-latest
@@ -47,8 +48,10 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Print-Version
+      - name: Print-Infos
         run: |
+          echo APP_REPO: ${{ needs.infos.outputs.APP_REPO }}
+          echo APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
           echo CURRENT_VERSION: ${{ needs.infos.outputs.CURRENT_VERSION }}
           echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
 
@@ -60,7 +63,6 @@ jobs:
 
       - name: Print workspace content
         run:  ls ${GITHUB_WORKSPACE}
-
 
   go-lint:
     name: GoLint
@@ -91,8 +93,8 @@ jobs:
       - name: Helm lint
         run: helm lint ./helm/${APP_NAME}
 
-  docker-build:
-    needs: [infos, go-lint]
+  docker-build-push:
+    needs: [infos, go-lint, helm-lint]
     name: "Build Container Image"
     runs-on: ubuntu-latest
     env:
@@ -109,29 +111,26 @@ jobs:
       - name: Login to Docker Hub
         uses: docker/login-action@v1
         with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          registry: ${{ secrets.DOCKER_REGISTRY }}
+          username: ${{ secrets.DOCKER_REGISTRY_USERNAME }}
+          password: ${{ secrets.DOCKER_REGISTRY_TOKEN }}
 
       - name: Build and push
         uses: docker/build-push-action@v2
         with:
           context: .
+          push: true
           file: ./docker/Dockerfile
+          platforms: linux/amd64
           tags: ${{ secrets.CI_REGISTRY }}/${{ needs.infos.outputs.APP_REPO }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }}
           build-args: APP_NAME="${APP_NAME}",GIT_REPOSITORY="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}",BRANCH="${GITHUB_REF}",COMMIT="${GITHUB_SHA}",BUILD_DATE="$(date)",BUILD_NB="${GITHUB_RUN_NUMBER}",APP_VERSION="${APP_VERSION}",DOCKER_VERSION="$(docker --version)",GO_BUILDER="test",WORKSPACE="${GITHUB_WORKSPACE}"
-          outputs: type=docker,dest=/tmp/docker.tar
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: docker.tar
-          path: /tmp/docker.tar
 
-  helm-package:
-    needs: [infos, docker-build, helm-lint]
+  helm-package-push:
+    needs: [infos, docker-build-push]
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
@@ -143,125 +142,33 @@ jobs:
       - name: Load Workspace
         uses: actions/checkout@v2
 
-      - name: Helm lint
-        run: helm lint ${GITHUB_WORKSPACE}/helm/${APP_NAME}
-
       - name: Helm Package
         run: helm package ${GITHUB_WORKSPACE}/helm/${APP_NAME} --app-version ${APP_VERSION} --destination /tmp/chart.tgz
-#      - name: Upload artifact
-#        uses: actions/upload-artifact@v2
-#        with:
-#          name: chart.tgz
-#          path: /tmp/chart.tgz
-
-
-  # We should download the docker and helm artifact and test a deployment
-  # We should use a custom image to get faster
-  deploy-on-kind:
-    name: "Deploying Helm Chart on kind cluster"
-    needs: [infos, docker-build, helm-package]
-    runs-on: ubuntu-latest
-    env:
-      APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
-      APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-      KUBECONFIG: "/tmp/kubernetes/admin.conf"
-    strategy:
-        matrix:
-           node:
-            - "v1.21.2"
-#            - "v1.17.17"
-#            - "v1.18.19"
-#            - "v1.19.11"
-#            - "v1.20.7"
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-#      - name: Download artifact
-#        uses: actions/download-artifact@v2
-#        with:
-#          name: docker.tar
-#          path: /tmp
-
-      - uses: azure/setup-kubectl@v1
-        id: install
-
-      - name: Create k8s Kind Cluster
-        uses: helm/kind-action@v1.2.0
-
-      - uses: azure/setup-helm@v1
-        with:
-          version: 'v3.7.1' # default is latest stable
-
-#      - name: Download Chart artifact
-#        uses: actions/download-artifact@v2
-#        with:
-#          name: chart.tgz
-#          path: /tmp/chart.tgz
-
-#      - name: Unpack chart
-#        run: tar xzvf /tmp/chart.tgz
-
-      - name: Test
-        run: |
-          kubectl cluster-info --context kind-chart-testing
-          kubectl get storageclass standard
-
-      - name: Dry-Run installation
-        run: |
-          helm upgrade --install "my-chart" ./helm/${APP_NAME} -n 'dry-run' --create-namespace --dry-run
-
-      - name: Test Chart installation
-        run: |
-          helm upgrade --install "my-chart" ./helm/${APP_NAME} -n "dry-run" --create-namespace --wait
-          #kubectl wait --for=condition=Ready pod --all -n "dry-run" --timeout=300s
-
-  docker-push:
-    if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build, deploy-on-kind]
-    name: "Push Container Image"
-    runs-on: ubuntu-latest
-    env:
-      APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-      APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
-    steps:
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
-
-      - name: Download Container artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: docker.tar
-          path: /tmp
-
-      - name: Load Docker image
-        run: docker load --input /tmp/${{ needs.infos.outputs.NEXT_VERSION }}.tar
-
-      - name: Push Docker Image to Registry
-        run: |
-          echo ${{ secrets.CI_REGISTRY_TOKEN }} | docker login -u${{ secrets.CI_REGISTRY_USERNAME }} --password-stdin ${{ secrets.CI_REGISTRY }} 2>/dev/null
-          docker tag "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}" "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
-          docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:${APP_VERSION}"
-          docker push "${{ secrets.CI_REGISTRY }}/${APP_NAME}:latest"
-
-  helm-push:
-    needs: [infos, helm-package, deploy-on-kind]
-    name: "Push Helm Chart"
+      
+      - name: Helm Push
+        run: helm push ${GITHUB_WORKSPACE}/${APP_NAME}-${APP_VERSION}.tgz
+ 
+  deploy-dry-run:
+    name: "Deploy"
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
+    needs: [infos, docker-build, helm-package-push]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.1.0
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+        APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
+        KUBECONFIG: "/tmp/kubernetes/admin.conf"
     steps:
-      - name: Load Workspace
-        uses: actions/checkout@v2
-      - name: helm push
-        run: echo helm push ${GITHUB_WORKSPACE}/helm/my-chart-1.0.0.tgz
+      - name: helm dry-run
+        run: helm upgrade install package-version-1.0.0.tgz
+
 
   release:
-    if: startsWith(${{ github.ref }}, 'refs/tags/v')
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+#    if: startsWith(${{ github.ref }}, 'refs/tags/v')
     name: Release
-    needs: [infos, docker-push, helm-push, deploy-on-kind]
+    needs: [infos, deploy-dry-run]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.1.0
@@ -272,9 +179,9 @@ jobs:
         run: helm upgrade install package-version-1.0.0.tgz
 
   deploy:
-    name: "Deploy Release"
-    if: ${{ github.ref == 'refs/heads/master' }}
-    needs: [infos, docker-build, helm-package, release, deploy-on-kind]
+    name: "Deploy"
+    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
+    needs: [infos, docker-build, helm-package, deploy-dry-run]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.1.0
@@ -287,7 +194,7 @@ jobs:
   post-always:
     name: Result
     if: always()
-    needs: [infos, docker-build, helm-package, deploy-on-kind, release, deploy]
+    needs: [deploy]
     runs-on: ubuntu-latest
     container:
       image: alpine:latest
