@@ -142,6 +142,7 @@ jobs:
         CHARTMUSEUM_URL: ${{ secrets.HELM_REGISTRY }}
         CHARTMUSEUM_USER: ${{ secrets.HELM_REGISTRY_USERNAME }}
         CHARTMUSEUM_PASSWORD: ${{ secrets.HELM_REGISTRY_PASSWORD }}
+        HELM_EXPERIMENTAL_OCI: 1
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
