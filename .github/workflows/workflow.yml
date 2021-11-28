@@ -146,6 +146,9 @@ jobs:
       - name: Load Workspace
         uses: actions/checkout@v2
 
+      - name: Add Repo
+        run: |
+          helm add repo --username "${CHARTMUSEUM_USER}" --password "${CHARTMUSEUM_PASSWORD}" "${CHARTMUSEUM_URL}"
       - name: Helm Package
         run: |
           helm dependency update ${GITHUB_WORKSPACE}/helm/${APP_NAME}
@@ -153,7 +156,7 @@ jobs:
 
       - name: Helm Push
         run: |
-          helm push "${GITHUB_WORKSPACE}/${APP_NAME}-*" "${CHARTMUSEUM_URL}" --username "${CHARTMUSEUM_USER}" --password "${CHARTMUSEUM_PASSWORD}"
+          helm push "${GITHUB_WORKSPACE}/${APP_NAME}-*" "${CHARTMUSEUM_URL}"
 
  
   deploy-dry-run:
