@@ -74,12 +74,15 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.1.0
+      env:
+        APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+        APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
 
       - name: Helm lint
-        run: helm lint ./helm/my-chart
+        run: helm lint ./helm/${APP_NAME}
 
   docker-build:
     needs: [infos, go-lint]
