@@ -181,7 +181,7 @@ jobs:
   deploy:
     name: "Deploy"
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
-    needs: [infos, docker-build, helm-package, deploy-dry-run]
+    needs: [infos, docker-build-push, helm-package-push, deploy-dry-run]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.1.0
