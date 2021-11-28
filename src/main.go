@@ -28,7 +28,7 @@ func returnError(err error) {
 func main() {
 	http.HandleFunc("/hello", hello)
 	http.HandleFunc("/headers", headers)
-	err := http.ListenAndServe(":8090", nil)
+	err := http.ListenAndServe(":8080", nil)
 	if err != nil {
 		returnError(err)
 	}
