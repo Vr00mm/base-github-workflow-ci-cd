@@ -248,7 +248,7 @@ jobs:
         id: dryrun-status
 
     outputs:
-      STATUS: ${{ steps.get-version.outputs.dryrun-status }}
+      STATUS: ${{ steps.dryrun-status.outputs.status }}
 
   release:
 #    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
@@ -266,8 +266,8 @@ jobs:
 
   deploy:
     name: "Deploy"
-    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') && ( needs.deploy-dry-run.outputs.STATUS == 'success' ) }}
     needs: [infos, deploy-dry-run, release]
+    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') && needs.deploy-dry-run.outputs.STATUS == 'success' }}
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
