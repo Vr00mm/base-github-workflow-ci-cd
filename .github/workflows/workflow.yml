@@ -154,8 +154,7 @@ jobs:
 
       - name: Helm Push
         run: |
-          helm plugin install https://github.com/chartmuseum/helm-push.git
-          helm cm-push "${APP_NAME}-${APP_VERSION}.tgz" "${CHARTMUSEUM_URL}" --username "${CHARTMUSEUM_USER}" --password "${CHARTMUSEUM_PASSWORD}"
+          helm cm-push "${APP_NAME}-0.1.0.tgz" "${CHARTMUSEUM_URL}" --username "${CHARTMUSEUM_USER}" --password "${CHARTMUSEUM_PASSWORD}" --version ${APP_VERSION}
 
  
   deploy-dry-run:
