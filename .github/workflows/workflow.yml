@@ -82,7 +82,7 @@ jobs:
     name: "HelmLint"
     runs-on: ubuntu-latest
     container:
-      image: vr00mm/docker-helm-client:v0.1.0
+      image: vr00mm/docker-helm-client:v0.2.0
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
@@ -150,8 +150,8 @@ jobs:
         run: |
           helm cm-push \
             --version "${APP_VERSION}"  \
-            --app-version "${APP_VERSION}" \ 
-          "${GITHUB_WORKSPACE}/helm/${APP_NAME}" "${HELM_REPO}"
+            --app-version "${APP_VERSION}" \
+            "${GITHUB_WORKSPACE}/helm/${APP_NAME}" "${HELM_REPO}"
  
   deploy-dry-run:
     name: "Dry Run Deploy"
@@ -159,7 +159,7 @@ jobs:
     needs: [helm-package-push]
     runs-on: ubuntu-latest
     container:
-      image: vr00mm/docker-helm-client:v0.1.0
+      image: vr00mm/docker-helm-client:v0.2.0
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
