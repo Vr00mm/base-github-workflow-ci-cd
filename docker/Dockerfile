@@ -10,7 +10,7 @@ RUN go build -o /go/bin/app
 # Now copy it into our base image.
 FROM gcr.io/distroless/base-debian11
 
-LABEL trigger=true
+LABEL trigger=true2
 
 ARG APP_NAME=app_name \
         GIT_REPOSITORY=git_repository \

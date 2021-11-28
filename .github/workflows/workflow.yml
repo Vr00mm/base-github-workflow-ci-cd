@@ -126,7 +126,7 @@ jobs:
   helm-lint:
     needs: [infos]
     name: "HelmLint"
-    if: ${{ always() && needs.infos.outputs.CHART_CHANGES == 'true' }}
+    if: ${{ needs.infos.outputs.CHART_CHANGES == 'true' || needs.infos.outputs.APP_CHANGES == 'true' }}
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
@@ -190,7 +190,7 @@ jobs:
           fi
         
   helm-package-push:
-    needs: [infos, helm-lint]
+    needs: [infos, helm-lint, docker-build-push]
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
