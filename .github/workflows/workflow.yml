@@ -97,6 +97,7 @@ jobs:
       - name: Helm lint
         run: helm lint ./helm/${APP_NAME}
 
+
   docker-build-push:
     needs: [infos, go-lint, helm-lint]
     name: "Build Container Image"
@@ -169,7 +170,7 @@ jobs:
   deploy-dry-run:
     name: "Dry Run Deploy"
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
-    needs: [helm-package-push]
+    needs: [infos, helm-package-push]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
@@ -216,7 +217,7 @@ jobs:
   deploy:
     name: "Deploy"
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
-    needs: [infos, docker-build-push, helm-package-push, deploy-dry-run, release]
+    needs: [infos, deploy-dry-run, release]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.1.0
@@ -229,7 +230,7 @@ jobs:
   post-always:
     name: Result
     if: always()
-    needs: [deploy]
+    needs: [infos, deploy]
     runs-on: ubuntu-latest
     container:
       image: alpine:latest
