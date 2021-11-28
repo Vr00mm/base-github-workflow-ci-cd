@@ -129,6 +129,7 @@ jobs:
         run: echo ${{ steps.docker_build.outputs.digest }}
 
 
+        
   helm-package-push:
     needs: [infos, docker-build-push]
     name: "Package Helm Chart"
@@ -138,18 +139,25 @@ jobs:
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
+        CHARTMUSEUM_URL: ${{ secrets.HELM_REGISTRY }}
+        CHARTMUSEUM_USER: ${{ secrets.HELM_REGISTRY_USERNAME }}
+        CHARTMUSEUM_PASSWORD: ${{ secrets.HELM_REGISTRY_PASSWORD }}
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
 
       - name: Helm Package
-        run: helm package ${GITHUB_WORKSPACE}/helm/${APP_NAME} --app-version ${APP_VERSION} --destination /tmp/chart.tgz
-      
+        run: |
+          helm dependency update .
+          helm package ${GITHUB_WORKSPACE}/helm/${APP_NAME} --app-version ${APP_VERSION} --destination /tmp/chart.tgz
+
       - name: Helm Push
-        run: helm push ${GITHUB_WORKSPACE}/${APP_NAME}-${APP_VERSION}.tgz
+        run: |
+          helm push ${GITHUB_WORKSPACE}/${APP_NAME}-* ${CHARTMUSEUM_URL} -u ${CHARTMUSEUM_USER} -p ${CHARTMUSEUM_PASSWORD}
+
  
   deploy-dry-run:
-    name: "Deploy"
+    name: "Dry Run Deploy"
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
     needs: [helm-package-push]
     runs-on: ubuntu-latest
