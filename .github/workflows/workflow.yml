@@ -206,7 +206,7 @@ jobs:
 
       - name: Generate Documentation
         run: |
-
+          set -x
           ./bin/helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
           git config --local user.name "CI/CD"
           git config --local user.email ""
@@ -215,6 +215,8 @@ jobs:
           if [[ $diff != 0 ]]; then
             currentBranch=`git branch`
             git checkout -b feature/${{ needs.infos.outputs.GITHUB_REF }}-doc-update
+            ./bin/helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
+
             git status
             git add .
             git commit -m "[CI/CD] Auto regenerate documentation"
