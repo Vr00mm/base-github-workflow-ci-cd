@@ -171,13 +171,13 @@ jobs:
     container:
       image: vr00mm/docker-helm-client:v0.2.0
       env:
-        APP_REPO: ${{ needs.infos.outputs.APP_REPO }}
-        APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
-        KUBECONFIG: "/tmp/kubeconfig"
+        APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
         HELM_REPO: ${{ secrets.HELM_REGISTRY }}
         HELM_REPO_USERNAME: ${{ secrets.HELM_REGISTRY_USERNAME }}
         HELM_REPO_PASSWORD: ${{ secrets.HELM_REGISTRY_PASSWORD }}
+        KUBECONFIG: "/tmp/kubeconfig"
+
 
     steps:
       - name: Load Workspace
@@ -194,7 +194,8 @@ jobs:
           helm repo update
 
       - name: Deploy Dry-Run
-        run: helm upgrade --install "release-name" "private-registry/${APP_NAME}" --namespace "namespace" --create-namespace --dry-run
+        run: |
+          helm upgrade --install "release-name" "private-registry/${APP_NAME}" --namespace "namespace" --create-namespace --dry-run
 
   release:
 #    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
