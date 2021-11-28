@@ -141,7 +141,7 @@ jobs:
 
 
   docker-build-push:
-    needs: [infos, go-lint, helm-lint]
+    needs: [infos, go-lint]
     name: "Build Container Image"
     runs-on: ubuntu-latest
     steps:
@@ -190,7 +190,7 @@ jobs:
           fi
         
   helm-package-push:
-    needs: [infos, docker-build-push]
+    needs: [infos, helm-lint]
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
@@ -215,7 +215,7 @@ jobs:
   deploy-dry-run:
     name: "Dry Run Deploy"
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
-    needs: [infos, helm-package-push]
+    needs: [infos, helm-package-push, docker-build-push]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
