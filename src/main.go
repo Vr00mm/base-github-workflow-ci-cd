@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"os"
 )
 
 func hello(w http.ResponseWriter, req *http.Request) {
@@ -17,12 +18,19 @@ func headers(w http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func returnError(err error) {
+	newErr := fmt.Sprintf("Error: %v", err)
+	if err != nil {
+		fmt.Println(newErr)
+	}
+	os.Exit(1)
+}
 func main() {
 	http.HandleFunc("/hello", hello)
 	http.HandleFunc("/headers", headers)
 	err := http.ListenAndServe(":8090", nil)
 	if err != nil {
-		fmt.Sprintf("Error: %v", err)
+		returnError(err)
 	}
 
 }
