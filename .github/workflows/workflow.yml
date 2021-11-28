@@ -148,7 +148,7 @@ jobs:
 
       - name: Helm Push
         run: |
-          helm cm-push \
+          helm cm-push --force \
             --version "${APP_VERSION}"  \
             --app-version "${APP_VERSION}" \
             "${GITHUB_WORKSPACE}/helm/${APP_NAME}" "${HELM_REPO}"
