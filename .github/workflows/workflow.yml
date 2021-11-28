@@ -11,6 +11,7 @@ jobs:
 
   infos:
     name: Get Infos
+    id: infos
     runs-on: ubuntu-latest
     steps:
       - name: Set up QEMU
@@ -35,10 +36,14 @@ jobs:
           APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]' | awk -F/ '{print $2}'`
           echo "::set-output name=APP_NAME::${APP_NAME}"
     outputs:
-      CURRENT_VERSION: ${{ steps.get-version.outputs.CURRENT_VERSION }}
-      NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
-      APP_REPO: ${{ steps.appRepo.outputs.APP_REPO }}
-      APP_NAME: ${{ steps.appName.outputs.APP_NAME }}
+      CURRENT_VERSION:
+        value: ${{ steps.get-version.outputs.CURRENT_VERSION }}
+      NEXT_VERSION:
+        value: ${{ steps.get-version.outputs.NEXT_VERSION }}
+      APP_REPO:
+        value: ${{ steps.appRepo.outputs.APP_REPO }}
+      APP_NAME:
+        value: ${{ steps.appName.outputs.APP_NAME }}
 
   print-infos:
     needs: infos
@@ -137,8 +142,6 @@ jobs:
 
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
-
-
         
   helm-package-push:
     needs: [infos, docker-build-push]
@@ -177,8 +180,6 @@ jobs:
         HELM_REPO_USERNAME: ${{ secrets.HELM_REGISTRY_USERNAME }}
         HELM_REPO_PASSWORD: ${{ secrets.HELM_REGISTRY_PASSWORD }}
         KUBECONFIG: "/tmp/kubeconfig"
-
-
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
@@ -195,7 +196,7 @@ jobs:
 
       - name: Deploy Dry-Run
         run: |
-          helm upgrade --install "release-name" "private-registry/${APP_NAME}" --namespace "namespace" --create-namespace --dry-run
+          helm upgrade --install "release-name" "${APP_NAME}" --namespace "namespace" --create-namespace --dry-run
 
   release:
 #    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
