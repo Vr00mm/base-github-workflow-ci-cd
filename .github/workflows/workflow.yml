@@ -211,7 +211,7 @@ jobs:
             --version "${APP_VERSION}"  \
             --app-version "${APP_VERSION}" \
             "${GITHUB_WORKSPACE}/helm/${APP_NAME}" "${HELM_REPO}"
- 
+
   deploy-dry-run:
     name: "Dry Run Deploy"
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
@@ -260,7 +260,7 @@ jobs:
 
   deploy:
     name: "Deploy"
-    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') }}
+    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') && needs.deploy-dry-run.outputs.job-status" == "Success" }}
     needs: [infos, deploy-dry-run, release]
     runs-on: ubuntu-latest
     container:
@@ -289,6 +289,20 @@ jobs:
       - name: Deploy Dry-Run
         run: |
           helm upgrade --install "${APP_NAME}" "private-registry/${APP_NAME}" --namespace "${APP_NAME}" --create-namespace
+
+  helm-doc:
+    needs: [infos, deploy-dry-run]
+    name: "Package Helm Chart"
+    runs-on: ubuntu-latest
+    container:
+      image: jnorwood/helm-docs:latest
+    steps:
+      - name: Load Workspace
+        uses: actions/checkout@v2
+
+      - name: Helm Push
+        run: |
+          helm-docs --chart-search-root ./helm
 
   post-always:
     name: Result
