@@ -179,7 +179,7 @@ jobs:
 
       - name: Add Helm Registry
         run: |
-          helm repo add private-registry "${HELM_REPO}"
+          helm repo add private-registry "${HELM_REPO}" --username ${HELM_REPO_USERNAME} --password ${HELM_REPO_PASSWORD}
           helm repo update
 
       - name: Deploy Dry-Run
@@ -189,7 +189,6 @@ jobs:
             --namespace namespace --create-namespace \
             --dry-run
 
-            
   release:
 #    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
     if: startsWith(${{ github.ref }}, 'refs/tags/v')
@@ -203,6 +202,7 @@ jobs:
     steps:
       - name: helm dry-run
         run: helm upgrade install package-version-1.0.0.tgz
+
 
   deploy:
     name: "Deploy"
