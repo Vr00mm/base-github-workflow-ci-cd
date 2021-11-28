@@ -21,11 +21,13 @@ jobs:
       - name: Get-Version
         uses: vr00mm/github-action-semver@v0.9.2
         id: get-version
+
       - name: Get-AppName
         id: appName
         run: |
           APP_NAME=`echo ${GITHUB_REPOSITORY} | tr '[:upper:]' '[:lower:]'`
           echo "::set-output name=APP_NAME::${APP_NAME}"
+
     outputs:
       CURRENT_VERSION: ${{ steps.get-version.outputs.CURRENT_VERSION }}
       NEXT_VERSION: ${{ steps.get-version.outputs.NEXT_VERSION }}
@@ -40,14 +42,16 @@ jobs:
         run: |
           echo CURRENT_VERSION: ${{ needs.infos.outputs.CURRENT_VERSION }}
           echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
+
       - name: Print-Env
         run: printenv
+
       - name: Print github.ref
         run: echo github.ref ${{ github.ref }}
+
       - name: Print workspace content
         run:  ls ${GITHUB_WORKSPACE}
-      - name: ipa
-        run: ip a
+
 
   go-lint:
     name: GoLint
@@ -71,6 +75,7 @@ jobs:
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
+
       - name: Helm lint
         run: helm lint ./helm/my-chart
 
@@ -123,15 +128,17 @@ jobs:
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
+
       - name: Helm lint
         run: helm lint ${GITHUB_WORKSPACE}/helm/my-chart
+
       - name: Helm Package
         run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION} --destination /tmp/chart.tgz
-      - name: Upload artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: chart.tgz
-          path: /tmp/chart.tgz
+#      - name: Upload artifact
+#        uses: actions/upload-artifact@v2
+#        with:
+#          name: chart.tgz
+#          path: /tmp/chart.tgz
 
 
   # We should download the docker and helm artifact and test a deployment
@@ -153,11 +160,14 @@ jobs:
 #            - "v1.19.11"
 #            - "v1.20.7"
     steps:
-      - name: Download artifact
-        uses: actions/download-artifact@v2
-        with:
-          name: docker.tar
-          path: /tmp
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+#      - name: Download artifact
+#        uses: actions/download-artifact@v2
+#        with:
+#          name: docker.tar
+#          path: /tmp
 
       - uses: azure/setup-kubectl@v1
         id: install
