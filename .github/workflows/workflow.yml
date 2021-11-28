@@ -135,7 +135,7 @@ jobs:
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
-      image: vr00mm/docker-helm-client:v0.1.0
+      image: vr00mm/docker-helm-client:v0.2.0
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
