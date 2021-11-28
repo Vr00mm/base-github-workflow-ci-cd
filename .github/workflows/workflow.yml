@@ -16,7 +16,7 @@ on:
 
 jobs:
   infos:
-    name: Get Infos
+    name: "🕵🏼‍ Get Infos"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -116,9 +116,9 @@ jobs:
         run: printenv
 
   go-lint:
-    name: "👮🏻‍ GoLint"
-    needs: infos
+    needs: [infos]
     if: ${{ needs.infos.outputs.APP_CHANGES == 'true' }}
+    name: "👮🏻‍ GoLint"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -130,8 +130,8 @@ jobs:
 
   helm-lint:
     needs: [infos]
-    name: "👮🏻‍ HelmLint"
     if: ${{ needs.infos.outputs.CHART_CHANGES == 'true' || needs.infos.outputs.APP_CHANGES == 'true' }}
+    name: "👮🏻‍ HelmLint"
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
@@ -149,7 +149,7 @@ jobs:
       STATUS: ${{ steps.helm-lint.outputs.status }}
 
   helm-doc:
-    needs: [infos]
+    needs: [infos, helm-lint]
     name: "📖 Helm documentation"
     runs-on: ubuntu-latest
     steps:
@@ -367,7 +367,7 @@ jobs:
         run: helm upgrade install package-version-1.0.0.tgz
 
   post-always:
-    name: Result
+    name: "🚘 Result"
     if: always()
     needs: [infos, deploy]
     runs-on: ubuntu-latest
