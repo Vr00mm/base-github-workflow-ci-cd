@@ -188,9 +188,14 @@ jobs:
             docker tag ${{ secrets.DOCKER_REGISTRY }}/${{ needs.infos.outputs.APP_REPO }}/${{ needs.infos.outputs.APP_NAME }}:${{ needs.infos.outputs.NEXT_VERSION }} ${{ secrets.DOCKER_REGISTRY }}/${{ needs.infos.outputs.APP_REPO }}/${{ needs.infos.outputs.APP_NAME }}:latest
             docker push ${{ secrets.DOCKER_REGISTRY }}/${{ needs.infos.outputs.APP_REPO }}/${{ needs.infos.outputs.APP_NAME }}:latest
           fi
-        
+      - run: echo ::set-output name=status::success
+        id: docker-status
+    outputs:
+      STATUS: ${{ steps.docker-status.outputs.status }}     
+
   helm-package-push:
     needs: [infos, helm-lint, docker-build-push]
+    if: ${{ always() && needs.helm-lint.outputs.STATUS == 'success' }}
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
     container:
