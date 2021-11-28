@@ -211,7 +211,7 @@ jobs:
       - name: helm dry-run
         run: helm upgrade install package-version-1.0.0.tgz
 
-  deploy-chart:
+  deploy:
     name: "Deploy Helm Chart"
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
     needs: [infos, helm-package-push]
