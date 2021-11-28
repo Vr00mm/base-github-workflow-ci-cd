@@ -175,6 +175,9 @@ jobs:
           name: chart.tgz
           path: /tmp/chart.tgz
 
+      - name: Unpack chart
+        run: tar xzvf /tmp/chart.tgz
+
       - name: Test
         run: |
           kubectl cluster-info --context kind-chart-testing
@@ -182,6 +185,7 @@ jobs:
 
       - name: Dry-Run installation
         run: |
+          helm version
           helm upgrade --install "my-chart" /tmp/chart.tgz -n 'dry-run' --create-namespace --dry-run
 
       - name: Test Chart installation
