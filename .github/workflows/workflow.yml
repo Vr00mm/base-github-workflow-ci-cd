@@ -213,11 +213,11 @@ jobs:
 
   deploy:
     name: "Deploy"
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }} && always()
+    if: always() && ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
     needs: [infos, deploy-dry-run, release]
     runs-on: ubuntu-latest
     container:
-      image: vr00mm/docker-helm-client:v0.1.0
+      image: vr00mm/docker-helm-client:v0.2.0
       env:
         ENV_VAR: test-helm
     steps:
