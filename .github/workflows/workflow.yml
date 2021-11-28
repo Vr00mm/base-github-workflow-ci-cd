@@ -139,7 +139,7 @@ jobs:
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-        CHARTMUSEUM_URL: ${{ secrets.HELM_REGISTRY }}
+        HELM_REPO: ${{ secrets.HELM_REGISTRY }}
         HELM_REPO_USERNAME: ${{ secrets.HELM_REGISTRY_USERNAME }}
         HELM_REPO_PASSWORD: ${{ secrets.HELM_REGISTRY_PASSWORD }}
     steps:
@@ -150,8 +150,8 @@ jobs:
         run: |
           helm cm-push \
             --version "${APP_VERSION}"  \
-            --app-version "${APP_VERSION}" \
-          "${GITHUB_WORKSPACE}/helm/${APP_NAME}" "${CHARTMUSEUM_URL}"
+            --app-version "${APP_VERSION}" \ 
+          "${GITHUB_WORKSPACE}/helm/${APP_NAME}" "${HELM_REPO}"
  
   deploy-dry-run:
     name: "Dry Run Deploy"
@@ -163,15 +163,36 @@ jobs:
       env:
         APP_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
         APP_NAME: ${{ needs.infos.outputs.APP_NAME }}
-        KUBECONFIG: "/tmp/kubernetes/admin.conf"
+        KUBECONFIG: "/tmp/kubeconfig"
+        HELM_REPO: ${{ secrets.HELM_REGISTRY }}
+        HELM_REPO_USERNAME: ${{ secrets.HELM_REGISTRY_USERNAME }}
+        HELM_REPO_PASSWORD: ${{ secrets.HELM_REGISTRY_PASSWORD }}
+
     steps:
-      - name: helm dry-run
-        run: helm upgrade install package-version-1.0.0.tgz
+      - name: Load Workspace
+        uses: actions/checkout@v2
 
+      - name: Init Kubeconfig
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > /tmp/kubeconfig
+          chmod 0600 /tmp/kubeconfig
 
+      - name: Add Helm Registry
+        run: |
+          helm repo add private-registry "${HELM_REPO}"
+          helm repo update
+
+      - name: Deploy Dry-Run
+        run: |
+          helm upgrade --install \
+            release-name private-registry/${APP_NAME} \
+            --namespace namespace --create-namespace \
+            --dry-run
+
+            
   release:
-    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
-#    if: startsWith(${{ github.ref }}, 'refs/tags/v')
+#    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+    if: startsWith(${{ github.ref }}, 'refs/tags/v')
     name: Release
     needs: [infos, deploy-dry-run]
     runs-on: ubuntu-latest
@@ -186,7 +207,7 @@ jobs:
   deploy:
     name: "Deploy"
     if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
-    needs: [infos, docker-build-push, helm-package-push, deploy-dry-run]
+    needs: [infos, docker-build-push, helm-package-push, deploy-dry-run, release]
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.1.0
