@@ -142,9 +142,54 @@ jobs:
         id: helm-lint
     outputs:
       STATUS: ${{ steps.helm-lint.outputs.status }} 
+  helm-doc:
+    needs: [infos]
+    name: "Helm documentation"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Load Workspace
+        uses: actions/checkout@v2
 
+      - name: Generate Documentation
+        id: doc-gen
+        run: |
+          set -x
+          git config --local user.name "CI/CD"
+          git config --local user.email ""
+          echo ::set-output name=status::success
+
+          currentBranch=${{ needs.infos.outputs.GITHUB_REF }}
+          currentBranch=${currentBranch##*/}
+
+          newFeature=${currentBranch}-doc-update
+
+          git checkout -b feature/${newFeature}
+          ./bin/helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
+          
+          diff=`git diff |wc -l`
+          if [[ $diff != 0 ]]; then
+            git status
+            git add .
+            git commit -m "[CI/CD] Auto regenerate documentation"
+            git checkout ${currentBranch}
+            git merge feature/${newFeature}
+            git branch -d feature/${newFeature}
+            git push
+            echo ::set-output name=status::error
+          fi
+
+      - name: Push changes # push the output folder to your repo
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+
+      - name: Skip
+        run: |
+          [[ "${{steps.doc-gen.outputs.status == 'error' }}" ]] && exit 1
+          
   docker-build-push:
-    needs: [infos, go-lint]
+    needs: [infos, go-lint, helm-doc]
     name: "Build Container Image"
     runs-on: ubuntu-latest
     steps:
@@ -196,54 +241,8 @@ jobs:
     outputs:
       STATUS: ${{ steps.docker-status.outputs.status }}
 
-  helm-doc:
-    needs: [infos]
-    name: "Helm documentation"
-    runs-on: ubuntu-latest
-    steps:
-      - name: Load Workspace
-        uses: actions/checkout@v2
-
-      - name: Generate Documentation
-        id: doc-gen
-        run: |
-          set -x
-          git config --local user.name "CI/CD"
-          git config --local user.email ""
-          echo ::set-output name=status::success
-
-          currentBranch=vr00mm/test-vr00mm                   
-          currentBranch=${currentBranch##*/}
-
-          newFeature=${currentBranch}-doc-update
-
-          git checkout -b feature/${newFeature}
-          ./bin/helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
-          
-          diff=`git diff |wc -l`
-          if [[ $diff != 0 ]]; then
-            git status
-            git add .
-            git commit -m "[CI/CD] Auto regenerate documentation"
-            git checkout ${currentBranch}
-            git merge feature/${newFeature}
-            git branch -d feature/${newFeature}
-            git push
-            echo ::set-output name=status::error
-          fi
-
-      - name: Push changes # push the output folder to your repo
-        uses: ad-m/github-push-action@master
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          force: true
-
-      - name: Skip
-        run: |
-          [[ "${{steps.doc-gen.outputs.status == 'error' }}" ]] && exit 1
-
   helm-package-push:
-    needs: [infos, helm-lint, docker-build-push]
+    needs: [infos, helm-doc, docker-build-push]
     if: ${{ always() && needs.helm-lint.outputs.STATUS == 'success' }}
     name: "Package Helm Chart"
     runs-on: ubuntu-latest
