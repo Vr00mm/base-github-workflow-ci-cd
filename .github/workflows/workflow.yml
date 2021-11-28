@@ -209,8 +209,8 @@ jobs:
       - name: Setup Git
         run: |
           apk update
-          apk install git
-          
+          apk add git
+
       - name: Generate Documentation
         run: |
           helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
