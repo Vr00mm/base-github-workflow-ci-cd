@@ -213,7 +213,10 @@ jobs:
           echo ::set-output name=status::success
 
           currentBranch=`git branch`
-          git checkout -b feature/${{ needs.infos.outputs.GITHUB_REF }}-doc-update
+          newFeatureRaw=${{ needs.infos.outputs.GITHUB_REF }}-doc-update
+          newFeature=`echo ${newFeatureRaw##*/}`
+
+          git checkout -b feature/${newFeature}
           ./bin/helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
           
           diff=`git diff |wc -l`
@@ -222,8 +225,8 @@ jobs:
             git add .
             git commit -m "[CI/CD] Auto regenerate documentation"
             git checkout ${currentBranch}
-            git merge feature/${{ needs.infos.outputs.GITHUB_REF }}-doc-update
-            git branch -d feature/${{ needs.infos.outputs.GITHUB_REF }}-doc-update
+            git merge feature/${newFeature}
+            git branch -d feature/${newFeature}
             git push
             echo ::set-output name=status::error
           fi
