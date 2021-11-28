@@ -138,7 +138,10 @@ jobs:
         uses: actions/checkout@v2
       - name: Helm lint
         run: helm lint ./helm/${APP_NAME}
-
+      - run: echo ::set-output name=status::success
+        id: helm-lint
+    outputs:
+      STATUS: ${{ steps.helm-lint.outputs.status }} 
 
   docker-build-push:
     needs: [infos, go-lint]
