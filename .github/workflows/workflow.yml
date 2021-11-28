@@ -193,9 +193,11 @@ jobs:
           kubectl cluster-info --context kind-chart-testing
           kubectl get storageclass standard
 
+      - run: ls ${GITHUB_WORKSPACE}
+      - run: ls
+
       - name: Dry-Run installation
         run: |
-          helm version
           helm upgrade --install "my-chart" /tmp/chart.tgz -n 'dry-run' --create-namespace --dry-run
 
       - name: Test Chart installation
