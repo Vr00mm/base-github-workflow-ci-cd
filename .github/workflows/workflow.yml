@@ -75,7 +75,7 @@ jobs:
           echo CURRENT_VERSION: ${{ needs.infos.outputs.CURRENT_VERSION }}
           echo NEXT_VERSION: ${{ needs.infos.outputs.NEXT_VERSION }}
       
-        name: Print-GithubInfos
+      - name: Print-GithubInfos
         run: |
           echo GITHUB_SERVER_URL: ${{ needs.infos.outputs.GITHUB_SERVER_URL }}
           echo GITHUB_REPOSITORY: ${{ needs.infos.outputs.GITHUB_REPOSITORY }}
