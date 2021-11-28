@@ -213,7 +213,7 @@ jobs:
 
   deploy:
     name: "Deploy"
-    if: always() && ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*' }}
+    if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') }}
     needs: [infos, deploy-dry-run, release]
     runs-on: ubuntu-latest
     container:
