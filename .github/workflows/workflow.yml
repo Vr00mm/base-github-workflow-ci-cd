@@ -135,10 +135,10 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Helm lint
-        run: helm lint ${GITHUB_WORKSPACE}/helm/my-chart
+        run: helm lint ${GITHUB_WORKSPACE}/helm/${APP_NAME}
 
       - name: Helm Package
-        run: helm package ${GITHUB_WORKSPACE}/helm/my-chart --app-version ${APP_VERSION} --destination /tmp/chart.tgz
+        run: helm package ${GITHUB_WORKSPACE}/helm/${APP_NAME} --app-version ${APP_VERSION} --destination /tmp/chart.tgz
 #      - name: Upload artifact
 #        uses: actions/upload-artifact@v2
 #        with:
