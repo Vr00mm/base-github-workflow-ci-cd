@@ -148,7 +148,8 @@ jobs:
 
       - name: Add Repo
         run: |
-          helm add repo --username "${CHARTMUSEUM_USER}" --password "${CHARTMUSEUM_PASSWORD}" "${CHARTMUSEUM_URL}"
+          helm repo add private-registry "${CHARTMUSEUM_URL}" --username "${CHARTMUSEUM_USER}" --password "${CHARTMUSEUM_PASSWORD}"
+
       - name: Helm Package
         run: |
           helm dependency update ${GITHUB_WORKSPACE}/helm/${APP_NAME}
@@ -156,7 +157,7 @@ jobs:
 
       - name: Helm Push
         run: |
-          helm push "${GITHUB_WORKSPACE}/${APP_NAME}-*" "${CHARTMUSEUM_URL}"
+          helm push "${GITHUB_WORKSPACE}/${APP_NAME}-*" private-registry
 
  
   deploy-dry-run:
