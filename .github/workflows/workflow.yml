@@ -205,6 +205,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Generate Documentation
+        id: doc-gen
         run: |
           set -x
           ./bin/helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
@@ -233,9 +234,9 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           force: true
 
-      - name: Status
+      - name: Skip
         run: |
-          [[ "${{needs.helm-lint.outputs.STATUS == 'error' }}" ]] && exit 1
+          [[ "${{steps.doc-gen.outputs.status == 'error' }}" ]] && exit 1
 
   helm-package-push:
     needs: [infos, helm-lint, docker-build-push]
