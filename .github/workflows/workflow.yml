@@ -83,7 +83,7 @@ jobs:
 
   print-infos:
     needs: infos
-    name: Print Infos
+    name: "👁 Print Infos"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -116,7 +116,7 @@ jobs:
         run: printenv
 
   go-lint:
-    name: GoLint
+    name: "👮🏻‍ GoLint"
     needs: infos
     if: ${{ needs.infos.outputs.APP_CHANGES == 'true' }}
     runs-on: ubuntu-latest
@@ -130,7 +130,7 @@ jobs:
 
   helm-lint:
     needs: [infos]
-    name: "HelmLint"
+    name: "👮🏻‍ HelmLint"
     if: ${{ needs.infos.outputs.CHART_CHANGES == 'true' || needs.infos.outputs.APP_CHANGES == 'true' }}
     runs-on: ubuntu-latest
     container:
@@ -150,7 +150,7 @@ jobs:
 
   helm-doc:
     needs: [infos]
-    name: "Helm documentation"
+    name: "📖 Helm documentation"
     runs-on: ubuntu-latest
     steps:
       - name: Load Workspace
@@ -196,7 +196,7 @@ jobs:
 
   docker-build-push:
     needs: [infos, go-lint, helm-doc]
-    name: "Build Container Image"
+    name: "💼 Build Container Image"
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -250,7 +250,7 @@ jobs:
   helm-package-push:
     needs: [infos, helm-doc, docker-build-push]
     if: ${{ always() && needs.helm-lint.outputs.STATUS == 'success' }}
-    name: "Package Helm Chart"
+    name: "🛠️ Package Helm Chart"
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
@@ -276,7 +276,7 @@ jobs:
       STATUS: ${{ steps.helm-package-status.outputs.status }}   
 
   deploy-dry-run:
-    name: "Dry Run Deploy"
+    name: "🐋 Dry Run Deploy"
     needs: [infos, helm-package-push, docker-build-push]
     if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') && needs.helm-package-push.outputs.STATUS == 'success' }}
     runs-on: ubuntu-latest
@@ -317,7 +317,8 @@ jobs:
     needs: [infos, deploy-dry-run, helm-doc]
     if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') && needs.deploy-dry-run.outputs.STATUS == 'success' }}
 
-    name: ":whale2: :whale2: :whale2:Deploy on kubernetes ... "
+    name: "🐳 Deploy on kubernetes"
+
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
@@ -354,7 +355,7 @@ jobs:
   release:
 #    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
     if: contains(github.ref, 'refs/tags/')
-    name: Release
+    name: "🌏 Release"
     needs: [infos, deploy]
     runs-on: ubuntu-latest
     container:
