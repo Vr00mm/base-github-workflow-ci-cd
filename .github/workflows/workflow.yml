@@ -200,32 +200,24 @@ jobs:
     needs: [infos]
     name: "Helm documentation"
     runs-on: ubuntu-latest
-    container:
-      image: jnorwood/helm-docs:latest
     steps:
       - name: Load Workspace
         uses: actions/checkout@v2
 
-      - name: Setup Git
-        run: |
-          apk update
-          apk add git
-
       - name: Generate Documentation
         run: |
-          helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
+
+          ./bin/helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
           git config --local user.name "CI/CD"
           git config --local user.email ""
-
-          git 
           if [[ $(git diff |wc -l) -gt 0 ]]; then
             currentBranch=`git branch`
-            git checkout -b feature/${{ needs.infos.outputs.GITHUB_REF }}-bump-doc
+            git checkout -b feature/${{ needs.infos.outputs.GITHUB_REF }}-doc-update
             git status
             git add .
             git commit -m "[CI/CD] Auto regenerate documentation"
-            git checkout currentBranch
-            git merge feature/${{ needs.infos.outputs.GITHUB_REF }}-bump-doc
+            git checkout ${currentBranch}
+            git merge feature/${{ needs.infos.outputs.GITHUB_REF }}-doc-update
             echo ::set-output name=status::error
           fi
 
