@@ -194,7 +194,32 @@ jobs:
       - run: echo ::set-output name=status::success
         id: docker-status
     outputs:
-      STATUS: ${{ steps.docker-status.outputs.status }}     
+      STATUS: ${{ steps.docker-status.outputs.status }}
+
+  helm-doc:
+    needs: [infos, deploy]
+    if: ${{ always() && needs.deploy.outputs.STATUS == 'success' }}
+    name: "Helm documentation"
+    runs-on: ubuntu-latest
+    container:
+      image: jnorwood/helm-docs:latest
+    steps:
+      - name: Load Workspace
+        uses: actions/checkout@v2
+
+      - name: Generate Documentation
+        run: |
+          helm-docs -t README_chart.md.gotpl --chart-search-root ./helm
+          if [[ $(git diff |wc -l) -gt 0 ]]; then
+            currentBranch=`git branch`
+            git checkout -b feature/${{ needs.infos.outputs.GITHUB_REF }}-bump-doc
+            git status
+            git add .
+            git commit -m "[CI/CD] Auto regenerate documentation"
+            git checkout currentBranch
+            git merge feature/${{ needs.infos.outputs.GITHUB_REF }}-bump-doc
+            exit 1
+          fi
 
   helm-package-push:
     needs: [infos, helm-lint, docker-build-push]
@@ -262,23 +287,9 @@ jobs:
     outputs:
       STATUS: ${{ steps.dryrun-status.outputs.status }}
 
-  release:
-#    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
-    if: contains(github.ref, 'refs/tags/')
-    name: Release
-    needs: [infos, deploy-dry-run]
-    runs-on: ubuntu-latest
-    container:
-      image: vr00mm/docker-helm-client:v0.1.0
-      env:
-        ENV_VAR: test-helm
-    steps:
-      - name: helm dry-run
-        run: helm upgrade install package-version-1.0.0.tgz
-
   deploy:
     name: "Deploy"
-    needs: [infos, deploy-dry-run, release]
+    needs: [infos, deploy-dry-run, helm-doc]
     if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') && needs.deploy-dry-run.outputs.STATUS == 'success' }}
     runs-on: ubuntu-latest
     container:
@@ -308,19 +319,24 @@ jobs:
         run: |
           helm upgrade --install "${APP_NAME}" "private-registry/${APP_NAME}" --namespace "${APP_NAME}" --create-namespace
 
-  helm-doc:
-    needs: [infos, deploy-dry-run]
-    name: "Helm documentation"
+      - run: echo ::set-output name=status::success
+        id: deploy-status
+    outputs:
+      STATUS: ${{ steps.deploy-status.outputs.status }}
+
+  release:
+#    if: ${{ github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' }}
+    if: contains(github.ref, 'refs/tags/')
+    name: Release
+    needs: [infos, deploy]
     runs-on: ubuntu-latest
     container:
-      image: jnorwood/helm-docs:latest
+      image: vr00mm/docker-helm-client:v0.1.0
+      env:
+        ENV_VAR: test-helm
     steps:
-      - name: Load Workspace
-        uses: actions/checkout@v2
-
-      - name: Helm Push
-        run: |
-          helm-docs --chart-search-root ./helm
+      - name: helm dry-run
+        run: helm upgrade install package-version-1.0.0.tgz
 
   post-always:
     name: Result
