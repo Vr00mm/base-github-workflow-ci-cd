@@ -314,9 +314,10 @@ jobs:
       STATUS: ${{ steps.dryrun-status.outputs.status }}
 
   deploy:
-    name: "${{ needs.infos.outputs.KUBE_ICN }}${{ needs.infos.outputs.KUBE_ICN }}${{ needs.infos.outputs.KUBE_ICN }} Deploy on kubernetes ..."
     needs: [infos, deploy-dry-run, helm-doc]
     if: ${{ always() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master' || github.ref == 'refs/tags/v*') && needs.deploy-dry-run.outputs.STATUS == 'success' }}
+
+    name: ":whale2: :whale2: :whale2:Deploy on kubernetes ... "
     runs-on: ubuntu-latest
     container:
       image: vr00mm/docker-helm-client:v0.2.0
